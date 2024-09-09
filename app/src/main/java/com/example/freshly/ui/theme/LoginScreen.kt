@@ -52,15 +52,14 @@ fun LoginScreen(modifier: Modifier = Modifier) {
     ) {
         Freshly()
         Spacer(modifier = Modifier.height(16.dp))
-        SignIn()
         Spacer(modifier = Modifier.height(16.dp))
         LoginFields()
         Spacer(modifier = Modifier.height(16.dp))
         LoginButton()
         Spacer(modifier = Modifier.height(16.dp))
-        OrSignInWith()
+        OrLogInWith()
         Spacer(modifier = Modifier.height(16.dp))
-        SocialSignInButtons()
+        SocialLogInButtons()
     }
 }
 
@@ -69,6 +68,16 @@ fun Freshly(modifier: Modifier = Modifier) {
     Text(
         textAlign = TextAlign.Center,
         text = buildAnnotatedString {
+            // Add "Log in to" with its own style
+            withStyle(
+                style = SpanStyle(
+                    color = Color.Black,  // You can change this to your preferred color
+                    fontSize = 24.sp,     // Adjust size as needed
+                    fontWeight = FontWeight.Normal
+                )
+            ) { append("Log in to ") }
+
+            // Add "Fresh" with its style
             withStyle(
                 style = SpanStyle(
                     color = Color(0xff128819),
@@ -76,6 +85,8 @@ fun Freshly(modifier: Modifier = Modifier) {
                     fontWeight = FontWeight.Bold
                 )
             ) { append("Fresh") }
+
+            // Add "ly" with its style
             withStyle(
                 style = SpanStyle(
                     color = Color(0xff6fb103),
@@ -88,19 +99,6 @@ fun Freshly(modifier: Modifier = Modifier) {
     )
 }
 
-@Composable
-fun SignIn(modifier: Modifier = Modifier) {
-    Text(
-        text = "Sign In",
-        color = Color(0xff232222),
-        textAlign = TextAlign.Center,
-        style = TextStyle(
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        ),
-        modifier = modifier
-    )
-}
 
 @Composable
 fun LoginFields(modifier: Modifier = Modifier) {
@@ -175,7 +173,7 @@ fun LoginButton(modifier: Modifier = Modifier) {
             .padding(horizontal = 68.dp, vertical = 10.dp)
     ) {
         Text(
-            text = "Sign In",
+            text = "Log In",
             color = Color.White,
             style = TextStyle(
                 fontSize = 14.sp
@@ -185,9 +183,9 @@ fun LoginButton(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun OrSignInWith(modifier: Modifier = Modifier) {
+fun OrLogInWith(modifier: Modifier = Modifier) {
     Text(
-        text = "or sign-in with",
+        text = "or Log-in with",
         color = Color(0xff141414),
         style = TextStyle(
             fontSize = 14.sp
@@ -197,25 +195,25 @@ fun OrSignInWith(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SocialSignInButtons(modifier: Modifier = Modifier) {
+fun SocialLogInButtons(modifier: Modifier = Modifier) {
     Column(
         verticalArrangement = Arrangement.spacedBy(21.dp, Alignment.Top),
         modifier = modifier
             .requiredWidth(325.dp)
     ) {
-        SocialSignInButton(
+        SocialLogInButton(
             imageResource = R.drawable.logosfacebook,
-            buttonText = "Sign In With Facebook"
+            buttonText = "Log In With Facebook"
         )
-        SocialSignInButton(
+        SocialLogInButton(
             imageResource = R.drawable.flatcoloriconsgoogle,
-            buttonText = "Sign In With Google"
+            buttonText = "Log In With Google"
         )
     }
 }
 
 @Composable
-fun SocialSignInButton(
+fun SocialLogInButton(
     imageResource: Int,
     buttonText: String,
     modifier: Modifier = Modifier
