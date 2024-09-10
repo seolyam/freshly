@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,8 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
@@ -41,7 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.example.freshly.R
 
 @Composable
-fun SignUpScreen(modifier: Modifier = Modifier) {
+fun SignUpScreen(onSignUpSuccess: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -52,15 +53,13 @@ fun SignUpScreen(modifier: Modifier = Modifier) {
     ) {
         FreshlySignUp()
         Spacer(modifier = Modifier.height(16.dp))
-        CreateAnAccount()
+        SignUpFields()
         Spacer(modifier = Modifier.height(16.dp))
-        Frame8()
+        SignUpButton(onClick = onSignUpSuccess)
         Spacer(modifier = Modifier.height(16.dp))
-        Frame9()
+        OrSignUpWith()
         Spacer(modifier = Modifier.height(16.dp))
-        OrSignupWith()
-        Spacer(modifier = Modifier.height(16.dp))
-        Frame14()
+        SocialSignUpButtons()
     }
 }
 
@@ -71,11 +70,20 @@ fun FreshlySignUp(modifier: Modifier = Modifier) {
         text = buildAnnotatedString {
             withStyle(
                 style = SpanStyle(
+                    color = Color.Black,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            ) { append("Sign Up to ") }
+
+            withStyle(
+                style = SpanStyle(
                     color = Color(0xff128819),
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold
                 )
             ) { append("Fresh") }
+
             withStyle(
                 style = SpanStyle(
                     color = Color(0xff6fb103),
@@ -89,29 +97,15 @@ fun FreshlySignUp(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun CreateAnAccount(modifier: Modifier = Modifier) {
-    Text(
-        text = "Create an account",
-        color = Color(0xff232222),
-        textAlign = TextAlign.Center,
-        style = TextStyle(
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        ),
-        modifier = modifier
-    )
-}
-
-
-@Composable
-fun Frame8(modifier: Modifier = Modifier) {
+fun SignUpFields(modifier: Modifier = Modifier) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
         modifier = modifier
-            .requiredWidth(width = 326.dp)
+            .requiredWidth(326.dp)
     ) {
         Text(
             text = "Email",
@@ -128,10 +122,10 @@ fun Frame8(modifier: Modifier = Modifier) {
             textStyle = TextStyle(color = Color(0xff141414)),
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(shape = RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(8.dp))
                 .border(
-                    border = BorderStroke(1.dp, Color(0xff141414)),
-                    shape = RoundedCornerShape(8.dp)
+                    BorderStroke(1.dp, Color(0xff141414)),
+                    RoundedCornerShape(8.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 10.dp)
                 .background(Color.White)
@@ -150,33 +144,56 @@ fun Frame8(modifier: Modifier = Modifier) {
             value = password,
             onValueChange = { password = it },
             visualTransformation = PasswordVisualTransformation(),
-            textStyle = TextStyle(color = Color(0xff141414)), // Text color inside the field
+            textStyle = TextStyle(color = Color(0xff141414)),
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(shape = RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(8.dp))
                 .border(
-                    border = BorderStroke(1.dp, Color(0xff141414)),
-                    shape = RoundedCornerShape(8.dp))
+                    BorderStroke(1.dp, Color(0xff141414)),
+                    RoundedCornerShape(8.dp)
+                )
                 .padding(horizontal = 16.dp, vertical = 10.dp)
-                .background(Color.White) // Background color of the field
+                .background(Color.White)
+        )
+
+        Text(
+            text = "Confirm Password",
+            color = Color(0xff141414),
+            style = TextStyle(
+                fontSize = 14.sp
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+        BasicTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            visualTransformation = PasswordVisualTransformation(),
+            textStyle = TextStyle(color = Color(0xff141414)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .border(
+                    BorderStroke(1.dp, Color(0xff141414)),
+                    RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .background(Color.White)
         )
     }
 }
 
-
-
-
 @Composable
-fun Frame9(modifier: Modifier = Modifier) {
+fun SignUpButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .requiredWidth(width = 325.dp)
-            .requiredHeight(height = 37.dp)
-            .clip(shape = RoundedCornerShape(8.dp))
-            .background(color = Color(0xff128819))
+            .requiredWidth(326.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0xff128819))
             .padding(horizontal = 68.dp, vertical = 10.dp)
+            .clickable { onClick() }
     ) {
         Text(
             text = "Sign Up",
@@ -189,9 +206,9 @@ fun Frame9(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun OrSignupWith(modifier: Modifier = Modifier) {
+fun OrSignUpWith(modifier: Modifier = Modifier) {
     Text(
-        text = "or sign-up with",
+        text = "or Sign Up with",
         color = Color(0xff141414),
         style = TextStyle(
             fontSize = 14.sp
@@ -201,88 +218,64 @@ fun OrSignupWith(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Frame14(modifier: Modifier = Modifier) {
+fun SocialSignUpButtons(modifier: Modifier = Modifier) {
     Column(
         verticalArrangement = Arrangement.spacedBy(21.dp, Alignment.Top),
         modifier = modifier
-            .requiredWidth(width = 325.dp)
+            .requiredWidth(325.dp)
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
-            modifier = Modifier
-                .fillMaxWidth()
-                .requiredHeight(height = 41.dp)
-                .clip(shape = RoundedCornerShape(8.dp))
-                .border(
-                    border = BorderStroke(1.dp, Color(0xff141414)),
-                    shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 13.dp, vertical = 10.dp)
+        SocialSignUpButton(
+            imageResource = R.drawable.logosfacebook,
+            buttonText = "Sign Up With Facebook"
+        )
+        SocialSignUpButton(
+            imageResource = R.drawable.flatcoloriconsgoogle,
+            buttonText = "Sign Up With Google"
+        )
+    }
+}
+
+@Composable
+fun SocialSignUpButton(
+    imageResource: Int,
+    buttonText: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+        modifier = modifier
+            .fillMaxWidth()
+            .requiredHeight(41.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .border(
+                BorderStroke(1.dp, Color(0xff141414)),
+                RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 13.dp, vertical = 10.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.Start),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(62.dp, Alignment.Start),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logosfacebook),
-                    contentDescription = "logos:facebook",
-                    modifier = Modifier
-                        .requiredSize(size = 20.dp)
+            Image(
+                painter = painterResource(id = imageResource),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = buttonText,
+                color = Color(0xff141414),
+                style = TextStyle(
+                    fontSize = 14.sp
                 )
-                Text(
-                    text = "Sign Up With Facebook",
-                    color = Color(0xff141414),
-                    style = TextStyle(
-                        fontSize = 14.sp
-                    )
-                )
-            }
-        }
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxWidth()
-                .requiredHeight(height = 41.dp)
-                .clip(shape = RoundedCornerShape(8.dp))
-                .border(
-                    border = BorderStroke(1.dp, Color(0xff141414)),
-                    shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 13.dp, vertical = 10.dp)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(56.dp, Alignment.Start),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .requiredWidth(width = 298.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.flatcoloriconsgoogle),
-                    contentDescription = "flat-color-icons:google",
-                    modifier = Modifier
-                        .requiredSize(size = 24.dp)
-                )
-                Text(
-                    text = "Sign Up With Google",
-                    color = Color(0xff141414),
-                    style = TextStyle(
-                        fontSize = 14.sp
-                    )
-                )
-            }
+            )
         }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun SignUpScreenPreview() {
-    SignUpScreen()
-}
-
-@Preview
-@Composable
-private fun Frame8Preview() {
-    Frame8(Modifier)
+    SignUpScreen(onSignUpSuccess = {})
 }

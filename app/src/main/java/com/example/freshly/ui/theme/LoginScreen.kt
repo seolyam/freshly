@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,7 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.example.freshly.R
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier) {
+fun LoginScreen(onLoginSuccess: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -52,10 +53,9 @@ fun LoginScreen(modifier: Modifier = Modifier) {
     ) {
         Freshly()
         Spacer(modifier = Modifier.height(16.dp))
-        Spacer(modifier = Modifier.height(16.dp))
         LoginFields()
         Spacer(modifier = Modifier.height(16.dp))
-        LoginButton()
+        LoginButton(onClick = onLoginSuccess)
         Spacer(modifier = Modifier.height(16.dp))
         OrLogInWith()
         Spacer(modifier = Modifier.height(16.dp))
@@ -68,16 +68,14 @@ fun Freshly(modifier: Modifier = Modifier) {
     Text(
         textAlign = TextAlign.Center,
         text = buildAnnotatedString {
-            // Add "Log in to" with its own style
             withStyle(
                 style = SpanStyle(
-                    color = Color.Black,  // You can change this to your preferred color
-                    fontSize = 24.sp,     // Adjust size as needed
+                    color = Color.Black,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Normal
                 )
             ) { append("Log in to ") }
 
-            // Add "Fresh" with its style
             withStyle(
                 style = SpanStyle(
                     color = Color(0xff128819),
@@ -86,7 +84,6 @@ fun Freshly(modifier: Modifier = Modifier) {
                 )
             ) { append("Fresh") }
 
-            // Add "ly" with its style
             withStyle(
                 style = SpanStyle(
                     color = Color(0xff6fb103),
@@ -98,7 +95,6 @@ fun Freshly(modifier: Modifier = Modifier) {
         modifier = modifier
     )
 }
-
 
 @Composable
 fun LoginFields(modifier: Modifier = Modifier) {
@@ -162,7 +158,7 @@ fun LoginFields(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun LoginButton(modifier: Modifier = Modifier) {
+fun LoginButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
@@ -171,6 +167,7 @@ fun LoginButton(modifier: Modifier = Modifier) {
             .clip(RoundedCornerShape(8.dp))
             .background(Color(0xff128819))
             .padding(horizontal = 68.dp, vertical = 10.dp)
+            .clickable { onClick() }
     ) {
         Text(
             text = "Log In",
@@ -254,5 +251,5 @@ fun SocialLogInButton(
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    LoginScreen(onLoginSuccess = {})
 }

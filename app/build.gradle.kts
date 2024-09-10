@@ -56,8 +56,11 @@ android {
 }
 
 dependencies {
-
-
+    
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.ui) // Corrected alias for ui
     implementation(libs.androidx.material3) // Corrected material3 reference
     implementation(libs.androidx.core.ktx) // Removed the incorrect v1120 reference
@@ -69,6 +72,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.play.services.maps)
 
     // Test dependencies
     testImplementation(libs.junit)
