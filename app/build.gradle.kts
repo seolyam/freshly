@@ -56,23 +56,23 @@ android {
 }
 
 dependencies {
-    
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.coil.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.ui) // Corrected alias for ui
     implementation(libs.androidx.material3) // Corrected material3 reference
-    implementation(libs.androidx.core.ktx) // Removed the incorrect v1120 reference
+    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose) // Required for Jetpack Compose
-    implementation(platform(libs.androidx.compose.bom)) // Compose BOM (Bill of Materials)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.play.services.maps)
+    implementation(libs.accompanist.pager)
+
 
     // Test dependencies
     testImplementation(libs.junit)

@@ -1,6 +1,5 @@
 package com.example.freshly
 
-import CartScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,16 +13,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.freshly.ui.CheckoutPage
 import com.example.freshly.ui.Phone
+import com.example.freshly.ui.theme.CartScreen
 import com.example.freshly.ui.theme.CartViewModel
 import com.example.freshly.ui.theme.FreshlyTheme
 import com.example.freshly.ui.theme.HomePageScreen
 import com.example.freshly.ui.theme.LoginScreen
-import com.example.freshly.ui.theme.ProductPage
+import com.example.freshly.ui.theme.ProductPageScreen
 import com.example.freshly.ui.theme.SignUpScreen
 
 class MainActivity : ComponentActivity() {
-    private val cartViewModel: CartViewModel by viewModels()
+    // Correctly initialize the CartViewModel
+    private val cartViewModel: CartViewModel by viewModels<CartViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,24 +70,44 @@ fun NavigationComponent(
         composable("home") {
             HomePageScreen(
                 onCartClick = { navController.navigate("cart") },
-                onProductClick = { productName, productPrice, productImage ->
-                    navController.navigate("product/$productName/$productPrice/$productImage")
+                onProductClick = { product ->
+                    navController.navigate(
+                        "product/${product.name}/${product.price}/${product.description}/${product.allergens}"
+                    )
                 }
             )
         }
-        composable("cart") {
-            CartScreen(cartViewModel)
-        }
-        composable("product/{productName}/{productPrice}/{productImage}") { backStackEntry ->
-            val productName = backStackEntry.arguments?.getString("productName") ?: ""
-            val productPrice = backStackEntry.arguments?.getString("productPrice") ?: ""
-            val productImage = backStackEntry.arguments?.getString("productImage") ?: ""
-            ProductPage(
-                cartViewModel = cartViewModel,
-                productName = productName,
-                productPrice = productPrice,
-                productImage = productImage
-            )
+
+
+
+            composable("cart") {
+                CartScreen(
+                    cartViewModel = cartViewModel,
+                    onCheckoutClick = { navController.navigate("checkout") }
+                )
+            }
+            composable("product/{productName}/{productPrice}/{productDescription}/{productAllergens}") { backStackEntry ->
+                val productName = backStackEntry.arguments?.getString("productName") ?: ""
+                val productPriceString = backStackEntry.arguments?.getString("productPrice") ?: "0.0"
+                val productPrice = productPriceString.toDoubleOrNull() ?: 0.0
+                val productDescription = backStackEntry.arguments?.getString("productDescription") ?: ""
+                val productAllergens = backStackEntry.arguments?.getString("productAllergens") ?: ""
+
+                ProductPageScreen(
+                    cartViewModel = cartViewModel,
+                    productName = productName,
+                    productPrice = productPrice,
+                    productDescription = productDescription,
+                    productAllergens = productAllergens,
+                    onNavigateBack = { navController.popBackStack() },
+                    onCartClick = { navController.navigate("cart") }
+                )
+            }
+
+
+            composable("checkout") {
+                CheckoutPage()
+            }
         }
     }
-}
+

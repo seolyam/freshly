@@ -192,8 +192,9 @@ fun SignUpButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
             .requiredWidth(326.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(Color(0xff128819))
-            .padding(horizontal = 68.dp, vertical = 10.dp)
             .clickable { onClick() }
+            .padding(horizontal = 68.dp, vertical = 10.dp)
+
     ) {
         Text(
             text = "Sign Up",
