@@ -72,7 +72,7 @@ fun Phone(
         ) {
             Text(
                 text = "LOGIN",
-                color = Color.Black,
+                color = Color(0xFF201E1E),
                 textAlign = TextAlign.Center,
                 style = TextStyle(
                     fontSize = 13.sp,

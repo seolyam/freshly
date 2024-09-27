@@ -214,7 +214,7 @@ fun SearchSection(modifier: Modifier = Modifier) {
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 textStyle = TextStyle(
-                    color = Color.Black,
+                    color = Color(0xFF201E1E),
                     fontSize = 14.sp
                 ),
                 modifier = Modifier.fillMaxWidth(),
@@ -307,7 +307,7 @@ fun ProductItem(
         )
         Text(
             text = product.name,
-            color = Color.Black,
+            color = Color(0xFF201E1E),
             fontSize = 14.sp,
             modifier = Modifier.padding(top = 8.dp)
         )

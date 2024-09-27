@@ -1,9 +1,9 @@
 package com.example.freshly.ui.theme
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -103,73 +102,89 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .padding(16.dp),
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Placeholder image
         PlaceholderImage(
             modifier = Modifier
                 .size(80.dp)
                 .clip(RoundedCornerShape(8.dp))
         )
+
         Spacer(modifier = Modifier.width(16.dp))
+
+        // Product name and price
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.weight(1f)
         ) {
             Text(
                 text = item.name,
-                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black) // Black font color
             )
             Text(
-                text = "₱${item.price * item.quantity}",
+                text = "₱${"%.2f".format(item.price * item.quantity)}",
                 style = TextStyle(fontSize = 16.sp, color = Color.Gray)
-            )
-        }
-
-        // Quantity Controls
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.Gray.copy(alpha = 0.1f))
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_minus),
-                contentDescription = "Decrease Quantity",
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable {
-                        cartViewModel.decrementItemQuantity(item)
-                    }
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "${item.quantity}",
-                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = "Increase Quantity",
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable {
-                        cartViewModel.incrementItemQuantity(item)
-                    }
             )
         }
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        Icon(
-            imageVector = Icons.Filled.Delete,
-            contentDescription = "Remove Item",
-            modifier = Modifier
-                .size(24.dp)
-                .clickable {
-                    cartViewModel.removeItem(item)
-                }
-        )
+        // Quantity controls: Minus, Quantity, Plus
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Minus Button
+            Button(
+                onClick = {
+                    if (item.quantity > 1) {
+                        cartViewModel.decrementItemQuantity(item)
+                    } else {
+                        cartViewModel.removeItem(item)
+                    }
+                },
+                modifier = Modifier.size(30.dp),  // Adjusted size
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_minus),
+                    contentDescription = "Decrease quantity",
+                    tint = Color.Black,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))  // Adjust spacing
+
+            // Display quantity
+            Text(
+                text = "${item.quantity}",
+                color = Color.Black,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(horizontal = 8.dp) // Adjust spacing
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Plus Button
+            Button(
+                onClick = { cartViewModel.incrementItemQuantity(item) },
+                modifier = Modifier.size(30.dp),  // Adjusted size
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Increase quantity",
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+
     }
 }

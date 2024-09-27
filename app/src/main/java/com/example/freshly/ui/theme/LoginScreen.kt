@@ -70,7 +70,7 @@ fun Freshly(modifier: Modifier = Modifier) {
         text = buildAnnotatedString {
             withStyle(
                 style = SpanStyle(
-                    color = Color.Black,
+                    color = Color(0xFF201E1E),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Normal
                 )

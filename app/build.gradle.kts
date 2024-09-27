@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.freshly"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.freshly"
@@ -56,6 +56,8 @@ android {
 }
 
 dependencies {
+
+    implementation(libs.androidx.material.icons.extended)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.coil.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

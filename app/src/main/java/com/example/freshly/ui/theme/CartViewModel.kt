@@ -13,9 +13,9 @@ class CartViewModel : ViewModel() {
         val existingItemIndex = currentItems.indexOfFirst { it.name == item.name }
 
         if (existingItemIndex != -1) {
-            // Update the quantity by incrementing it by 1
+            // Update the quantity by adding item.quantity
             val existingItem = currentItems[existingItemIndex]
-            val updatedItem = existingItem.copy(quantity = existingItem.quantity + 1)
+            val updatedItem = existingItem.copy(quantity = existingItem.quantity + item.quantity)
             currentItems[existingItemIndex] = updatedItem
         } else {
             // Add a new item with the specified quantity
@@ -61,7 +61,7 @@ class CartViewModel : ViewModel() {
     }
 
     fun getTotalPrice(): Double {
-        return _cartItems.value.sumOf { it.quantity * it.price }
+        return _cartItems.value.sumOf { it.price * it.quantity }
     }
 
     fun clearCart() {

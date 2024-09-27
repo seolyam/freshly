@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,17 +14,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,7 +69,19 @@ fun ProductPageScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) {
+                Snackbar(
+                    modifier = Modifier
+                        .padding(16.dp),
+                    containerColor = Color.White,  // Set background color to white
+                    contentColor = Color(0xFF201E1E),  // Set text color to #201E1E
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = "Added to Cart", color = Color(0xFF201E1E))  // Change text color
+                }
+            }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -74,10 +94,10 @@ fun ProductPageScreen(
                 productPrice = productPrice,
                 productDescription = productDescription,
                 productAllergens = productAllergens,
-                onAddToCart = {
+                onAddToCart = { quantity ->
                     val item = CartItem(
                         name = productName,
-                        quantity = 1,
+                        quantity = quantity, // Use selected quantity
                         price = productPrice,
                     )
                     cartViewModel.addItem(item)
@@ -96,11 +116,14 @@ fun ProductPage(
     productPrice: Double,
     productDescription: String,
     productAllergens: String,
-    onAddToCart: () -> Unit,
+    onAddToCart: (Int) -> Unit, // Accepts quantity
     onNavigateBack: () -> Unit,
     onCartClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Add quantity state variable
+    var quantity by remember { mutableIntStateOf(1) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -119,7 +142,7 @@ fun ProductPage(
             Icon(
                 painter = painterResource(id = R.drawable.eparrowleft),
                 contentDescription = "Back",
-                tint = Color(0xFF141414),
+                tint = Color(0xFF201E1E),  // Replace black with #201E1E
                 modifier = Modifier
                     .size(24.dp)
                     .clickable { onNavigateBack() }  // Navigate back to homepage
@@ -140,12 +163,22 @@ fun ProductPage(
             Icon(
                 painter = painterResource(id = R.drawable.materialsymbolsshoppingcartoutline),
                 contentDescription = "Cart",
-                tint = Color.Black,
+                tint = Color(0xFF201E1E),  // Replace black with #201E1E
                 modifier = Modifier
                     .size(24.dp)
                     .clickable { onCartClick() }  // Navigate to cart
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))  // Adds space before the product name
+
+        // Product Name at the top
+        Text(
+            text = productName,
+            color = Color(0xFF201E1E),  // Replace black with #201E1E
+            style = TextStyle(fontSize = 30.sp, fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(bottom = 8.dp) // Adjust spacing below the product name
+        )
 
         // Product Image
         Box(
@@ -159,57 +192,122 @@ fun ProductPage(
             PlaceholderImage(modifier = Modifier.fillMaxSize()) // Placeholder image composable
         }
 
-        // Product Name
-        Text(
-            text = productName,
-            color = Color(0xFF141414),
-            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
         // Price and Quantity Section
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically, // Center items vertically
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
-            Text(
-                text = "Quantity",
-                color = Color(0xFF141414),
-                style = TextStyle(fontSize = 16.sp)
-            )
-            Text(
-                text = "Price ₱${"%.2f".format(productPrice)}",
-                color = Color.Black,
-                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            )
+            // Quantity Column
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Quantity",
+                    color = Color(0xFF201E1E),  // Replace black with #201E1E
+                    style = TextStyle(fontSize = 16.sp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))  // Add space between label and controls
+
+                // Quantity Controls: Decrease, Quantity, Increase
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Minus Button
+                    Button(
+                        onClick = { if (quantity > 1) quantity-- }, // Decrease quantity but not below 1
+                        modifier = Modifier.size(30.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray),
+                        contentPadding = PaddingValues(0.dp) // Remove default padding
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_minus),
+                            contentDescription = "Decrease quantity",
+                            tint = Color(0xFF201E1E),  // Replace black with #201E1E
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Display the current quantity
+                    Text(
+                        text = "$quantity",
+                        color = Color(0xFF201E1E),  // Replace black with #201E1E
+                        fontSize = 18.sp
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Plus Button
+                    Button(
+                        onClick = { quantity++ }, // Increase quantity
+                        modifier = Modifier.size(30.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
+                        contentPadding = PaddingValues(0.dp) // Remove default padding
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Increase quantity",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+
+            // Price Column
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Price",
+                    color = Color(0xFF201E1E),  // Replace black with #201E1E
+                    style = TextStyle(fontSize = 16.sp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))  // Space between label and price
+
+                // Price Value
+                Text(
+                    text = "₱${"%.2f".format(productPrice * quantity)}", // Multiply by quantity
+                    color = Color(0xFF201E1E),  // Replace black with #201E1E
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
 
         // Description Section
         Text(
             text = "DESCRIPTION",
-            color = Color(0xFF141414),
+            color = Color(0xFF201E1E),  // Replace black with #201E1E
             style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(vertical = 8.dp)
         )
         Text(
             text = productDescription,  // Display dynamic description
-            color = Color(0xFF141414),
+            color = Color(0xFF201E1E),  // Replace black with #201E1E
             style = TextStyle(fontSize = 14.sp),
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
+        Spacer(modifier = Modifier.width(16.dp))
         // Allergens Section
         Text(
             text = "ALLERGENS",
-            color = Color(0xFF141414),
+            color = Color(0xFF201E1E),  // Replace black with #201E1E
             style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(vertical = 8.dp)
         )
         Text(
             text = productAllergens,  // Display dynamic allergens
-            color = Color(0xFF141414),
+            color = Color(0xFF201E1E),  // Replace black with #201E1E
             style = TextStyle(fontSize = 14.sp),
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -218,7 +316,7 @@ fun ProductPage(
 
         // Add to Cart Button
         Button(
-            onClick = onAddToCart,
+            onClick = { onAddToCart(quantity) }, // Pass quantity to onAddToCart
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
             modifier = Modifier
@@ -227,7 +325,7 @@ fun ProductPage(
                 .height(56.dp)
         ) {
             Text(
-                text = "ADD TO CART",
+                text = "Add To Cart",
                 color = Color.White,
                 style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
             )
