@@ -5,36 +5,17 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,7 +39,8 @@ import com.google.accompanist.pager.rememberPagerState
 fun HomePageScreen(
     modifier: Modifier = Modifier,
     onCartClick: () -> Unit,
-    onProductClick: (Product) -> Unit
+    onProductClick: (Product) -> Unit,
+    onProfileClick: () -> Unit
 ) {
     Box(
         modifier = modifier
@@ -71,7 +53,6 @@ fun HomePageScreen(
                 modifier = Modifier
                     .padding(16.dp)
                     .background(Color.White)
-
             )
 
             // Ensure the carousel is visible at the top
@@ -80,17 +61,14 @@ fun HomePageScreen(
             Spacer(modifier = Modifier.height(16.dp))
             // Display products in a grid, scrollable
             ProductCategoriesSection(onProductClick)
-
-
-
-
         }
 
-        // Bottom navigation bar
-        BottomNavigationBar(modifier = Modifier.align(Alignment.BottomCenter))
+        BottomNavigationBar(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            onProfileClick = onProfileClick
+        )
     }
 }
-
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -99,20 +77,19 @@ fun ProductCarouselSection() {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val itemHorizontalMargin = 8.dp
-    val itemWidth = screenWidth - itemHorizontalMargin * 2 // Corrected multiplication
+    val itemWidth = screenWidth - itemHorizontalMargin * 2
 
     HorizontalPager(
         state = pagerState,
-        count = 3, // Number of items in the carousel
+        count = 3,
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp),
         verticalAlignment = Alignment.CenterVertically
     ) { page ->
-        ProductImageSection(page, itemWidth, itemHorizontalMargin) // Pass itemWidth and margin
+        ProductImageSection(page, itemWidth, itemHorizontalMargin)
     }
 }
-
 
 @Composable
 fun ProductImageSection(page: Int, itemWidth: Dp, itemHorizontalMargin: Dp) {
@@ -125,13 +102,14 @@ fun ProductImageSection(page: Int, itemWidth: Dp, itemHorizontalMargin: Dp) {
             .background(Color.Gray),
         contentAlignment = Alignment.Center
     ) {
-        PlaceholderImage(modifier = Modifier.fillMaxSize())
-        // Optional: Add page indicator text for visual debugging
-        Text(
-            text = "Page $page",
-            color = Color.White,
-            fontSize = 24.sp
-        )
+        // Placeholder for image
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = "Page $page",
+                color = Color.White,
+                fontSize = 24.sp
+            )
+        }
     }
 }
 
@@ -239,7 +217,6 @@ fun SearchSection(modifier: Modifier = Modifier) {
     }
 }
 
-
 @Composable
 fun ProductCategoriesSection(onProductClick: (Product) -> Unit) {
     val products = listOf(
@@ -250,7 +227,6 @@ fun ProductCategoriesSection(onProductClick: (Product) -> Unit) {
         Product("Tomatoes", "product_image_url", "Juicy tomatoes, perfect for sauces and salads.", "Tomato contains a lipid transfer protein (LTP) which may cause allergies.", 18.0),
         Product("Mushrooms", "product_image_url", "Fresh mushrooms rich in nutrients.", "Mushrooms can cause allergic reactions in sensitive individuals.", 25.0)
     )
-
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -270,7 +246,7 @@ fun ProductCategoriesSection(onProductClick: (Product) -> Unit) {
         }
 
         // Define the height of your bottom navigation bar
-        val bottomNavBarHeight = 56.dp // Adjust this value to match your bottom navigation bar height
+        val bottomNavBarHeight = 56.dp
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -299,12 +275,16 @@ fun ProductItem(
                 onProductClick(product)
             }
     ) {
-        // Use actual image loading here
-        PlaceholderImage(
+        // Use actual image loading here, e.g., with Coil
+        Box(
             modifier = Modifier
                 .size(150.dp)
                 .clip(RoundedCornerShape(10.dp))
-        )
+                .background(Color.LightGray),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = product.name, color = Color.White, fontSize = 16.sp)
+        }
         Text(
             text = product.name,
             color = Color(0xFF201E1E),
@@ -314,10 +294,11 @@ fun ProductItem(
     }
 }
 
-
 @Composable
-fun BottomNavigationBar(modifier: Modifier = Modifier) {
-    // Corrected spacing issues for the bottom navigation bar
+fun BottomNavigationBar(
+    modifier: Modifier = Modifier,
+    onProfileClick: () -> Unit
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -327,9 +308,9 @@ fun BottomNavigationBar(modifier: Modifier = Modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)) // Rounded corners on top
+                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 .background(Color.Black)
-                .padding(horizontal = 16.dp, vertical = 8.dp), // Add padding for a better look
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -342,13 +323,15 @@ fun BottomNavigationBar(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Filled.ShoppingCart,
                 contentDescription = "Cart Icon",
-                modifier = Modifier.size(30.dp),  // Larger cart icon
+                modifier = Modifier.size(30.dp),
                 tint = Color.White
             )
             Icon(
                 imageVector = Icons.Filled.Person,
                 contentDescription = "Profile Icon",
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { onProfileClick() },
                 tint = Color.White
             )
         }
@@ -360,8 +343,7 @@ fun BottomNavigationBar(modifier: Modifier = Modifier) {
 fun HomePageScreenPreview() {
     HomePageScreen(
         onCartClick = { /* Handle cart click */ },
-        onProductClick = { product ->
-            // For preview purposes, you can leave this empty or log the product
-        }
+        onProductClick = { product -> /* Handle product click */ },
+        onProfileClick = { /* Handle profile click */ }
     )
 }

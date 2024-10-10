@@ -21,6 +21,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug" // The final package name will be "com.example.freshly.debug"
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.freshly.ui.Phone
 import com.example.freshly.ui.theme.CartScreen
 import com.example.freshly.ui.theme.CartViewModel
+import com.example.freshly.ui.theme.EditProfileScreen
 import com.example.freshly.ui.theme.FreshlyTheme
 import com.example.freshly.ui.theme.HomePageScreen
 import com.example.freshly.ui.theme.InfoPage
@@ -87,7 +88,8 @@ fun NavigationComponent(
                     navController.navigate(
                         "product/${product.name}/${product.price}/${product.description}/${product.allergens}"
                     )
-                }
+                },
+                onProfileClick = { navController.navigate("editProfile") }
             )
         }
         composable("cart") {
@@ -140,5 +142,18 @@ fun NavigationComponent(
                 }
             )
         }
+        composable("editProfile") {
+            EditProfileScreen(
+                onSave = { /* Implement save functionality */ },
+                onNavigateBack = { navController.popBackStack() },
+                onLogout = {
+                    // Handle logout action
+                    navController.navigate("login") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                }
+            )
+        }
+
     }
 }
