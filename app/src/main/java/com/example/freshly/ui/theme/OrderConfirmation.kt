@@ -1,4 +1,4 @@
-
+package com.example.freshly.ui.theme
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -73,9 +72,8 @@ fun OrderConfirmation(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.pepiconspopcheckmarkfilled),
+                painter = painterResource(id = R.drawable.orderconfirmedcheck),
                 contentDescription = "Order Confirmed",
-                colorFilter = ColorFilter.tint(Color(0xFF128819)),
                 modifier = Modifier.size(170.dp)
             )
         }

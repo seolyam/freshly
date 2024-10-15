@@ -1,7 +1,6 @@
 package com.example.freshly
 
 import CheckoutPage
-import OrderConfirmation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,6 +22,7 @@ import com.example.freshly.ui.theme.FreshlyTheme
 import com.example.freshly.ui.theme.HomePageScreen
 import com.example.freshly.ui.theme.InfoPage
 import com.example.freshly.ui.theme.LoginScreen
+import com.example.freshly.ui.theme.OrderConfirmation
 import com.example.freshly.ui.theme.ProductPageScreen
 import com.example.freshly.ui.theme.SignUpScreen
 import com.example.freshly.ui.theme.UserViewModel
@@ -72,7 +72,10 @@ fun NavigationComponent(
             LoginScreen(onLoginSuccess = { navController.navigate("home") })
         }
         composable("signup") {
-            SignUpScreen(onSignUpSuccess = { navController.navigate("info") })
+            SignUpScreen(
+                userViewModel = userViewModel,
+                onSignUpSuccess = { navController.navigate("info") }
+            )
         }
         composable("info") {
             InfoPage(
@@ -144,6 +147,7 @@ fun NavigationComponent(
         }
         composable("editProfile") {
             EditProfileScreen(
+                userViewModel = userViewModel,
                 onSave = { /* Implement save functionality */ },
                 onNavigateBack = { navController.popBackStack() },
                 onLogout = {
@@ -154,6 +158,5 @@ fun NavigationComponent(
                 }
             )
         }
-
     }
 }

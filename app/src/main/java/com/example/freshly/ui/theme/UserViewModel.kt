@@ -10,7 +10,9 @@ data class UserInfo(
     var middleInitial: String = "",
     var lastName: String = "",
     var birthdate: String = "",
-    var address: String = ""
+    var address: String = "",
+    var email: String = "",
+    var password: String = ""
 )
 
 class UserViewModel : ViewModel() {

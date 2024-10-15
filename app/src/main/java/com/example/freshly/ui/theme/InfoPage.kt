@@ -29,7 +29,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Calendar
@@ -77,13 +82,13 @@ fun InfoPage(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally // Center the fields
     ) {
-        // Top bar with back arrow and title
+        // Top bar with back arrow
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp)
+                .padding(bottom = 8.dp)
         ) {
             IconButton(onClick = { onNavigateBack() }) {
                 Icon(
@@ -92,41 +97,66 @@ fun InfoPage(
                     tint = primaryColor
                 )
             }
-            Text(
-                text = "Personal Information",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = primaryColor,
-                modifier = Modifier.padding(start = 8.dp)
-            )
         }
 
+        // Sign-up to Freshly Title
+        SignupToFreshly(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        // Personal Information Section Title
+        Text(
+            text = "Personal Information",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = primaryColor,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
         // First Name and Middle Initial
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
-                value = firstName,
-                onValueChange = { firstName = it },
-                label = { Text(text = "First Name") },
-                placeholder = { Text(text = "Ex. Juan") },
-                singleLine = true,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "First Name",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                OutlinedTextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    placeholder = { Text(text = "Ex. Juan", color = Color(0xFFA8A8A8)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-            OutlinedTextField(
-                value = middleInitial,
-                onValueChange = { middleInitial = it },
-                label = { Text(text = "Middle Initial") },
-                placeholder = { Text(text = "Ex. J") },
-                singleLine = true,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Middle Initial",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                OutlinedTextField(
+                    value = middleInitial,
+                    onValueChange = { middleInitial = it },
+                    placeholder = { Text(text = "Ex. J", color = Color(0xFFA8A8A8)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -134,54 +164,77 @@ fun InfoPage(
         // Last Name and Birthdate
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
-                value = lastName,
-                onValueChange = { lastName = it },
-                label = { Text(text = "Last Name") },
-                placeholder = { Text(text = "Ex. Dela Cruz") },
-                singleLine = true,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Last Name",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                OutlinedTextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    placeholder = { Text(text = "Ex. Juan", color = Color(0xFFA8A8A8)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-            OutlinedTextField(
-                value = birthdate,
-                onValueChange = { birthdate = it },
-                label = { Text(text = "Birthdate") },
-                placeholder = { Text(text = "MM/DD/YYYY") },
-                readOnly = true,
-                singleLine = true,
-                trailingIcon = {
-                    IconButton(onClick = {
-                        datePickerDialog.show()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.CalendarToday,
-                            contentDescription = "Select Date",
-                            tint = primaryColor
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Birthdate",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                OutlinedTextField(
+                    value = birthdate,
+                    onValueChange = { birthdate = it },
+                    placeholder = { Text(text = "MM/DD/YYYY", color = Color(0xFFA8A8A8)) },
+                    readOnly = true,
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            datePickerDialog.show()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.CalendarToday,
+                                contentDescription = "Select Date",
+                                tint = primaryColor
+                            )
+                        }
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Address
-        OutlinedTextField(
-            value = address,
-            onValueChange = { address = it },
-            label = { Text(text = "Address") },
-            placeholder = { Text(text = "Ex. 1234 Barangay ABC, Bacolod City") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Address",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = primaryColor,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            OutlinedTextField(
+                value = address,
+                onValueChange = { address = it },
+                placeholder = { Text(text = "Ex. 1234 Barangay ABC, Bacolod City", color = Color(0xFFA8A8A8)) },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -204,7 +257,7 @@ fun InfoPage(
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(48.dp)
         ) {
             Text(
                 text = "Sign Up",
@@ -214,4 +267,36 @@ fun InfoPage(
             )
         }
     }
+}
+
+@Composable
+fun SignupToFreshly(modifier: Modifier = Modifier) {
+    Text(
+        textAlign = TextAlign.Center,
+        text = buildAnnotatedString {
+            withStyle(style = SpanStyle(
+                color = Color(0xff201e1e),
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold)) { append("Sign-up to") }
+            withStyle(style = SpanStyle(
+                color = Color(0xff201e1e),
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold)) { append(" ") }
+            withStyle(style = SpanStyle(
+                color = Color(0xff128819),
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold)) { append("Fresh") }
+            withStyle(style = SpanStyle(
+                color = Color(0xff6fb103),
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold)) { append("ly") }
+        },
+        modifier = modifier
+    )
+}
+
+@Preview
+@Composable
+private fun SignupToFreshlyPreview() {
+    SignupToFreshly(Modifier)
 }

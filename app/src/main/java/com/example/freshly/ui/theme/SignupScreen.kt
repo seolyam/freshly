@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
@@ -42,7 +42,16 @@ import androidx.compose.ui.unit.sp
 import com.example.freshly.R
 
 @Composable
-fun SignUpScreen(onSignUpSuccess: () -> Unit, modifier: Modifier = Modifier) {
+fun SignUpScreen(
+    userViewModel: UserViewModel,
+    onSignUpSuccess: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // State variables for user inputs
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -53,9 +62,28 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, modifier: Modifier = Modifier) {
     ) {
         FreshlySignUp()
         Spacer(modifier = Modifier.height(16.dp))
-        SignUpFields()
+        SignUpFields(
+            email = email,
+            onEmailChange = { email = it },
+            password = password,
+            onPasswordChange = { password = it },
+            confirmPassword = confirmPassword,
+            onConfirmPasswordChange = { confirmPassword = it }
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        SignUpButton(onClick = onSignUpSuccess)
+        SignUpButton(onClick = {
+            if (password == confirmPassword && email.isNotEmpty()) {
+                // Update UserViewModel with email and password
+                val userInfo = UserInfo(
+                    email = email,
+                    password = password
+                )
+                userViewModel.updateUserInfo(userInfo)
+                onSignUpSuccess()
+            } else {
+                // Handle validation errors (e.g., show a message)
+            }
+        })
         Spacer(modifier = Modifier.height(16.dp))
         OrSignUpWith()
         Spacer(modifier = Modifier.height(16.dp))
@@ -97,28 +125,31 @@ fun FreshlySignUp(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SignUpFields(modifier: Modifier = Modifier) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-
+fun SignUpFields(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier
+            .fillMaxWidth()
             .requiredWidth(326.dp)
     ) {
+        // Email Field
         Text(
             text = "Email",
             color = Color(0xff141414),
-            style = TextStyle(
-                fontSize = 14.sp
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
+            style = TextStyle(fontSize = 14.sp),
+            modifier = Modifier.fillMaxWidth()
         )
         BasicTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = onEmailChange,
             textStyle = TextStyle(color = Color(0xff141414)),
             modifier = Modifier
                 .fillMaxWidth()
@@ -127,22 +158,20 @@ fun SignUpFields(modifier: Modifier = Modifier) {
                     BorderStroke(1.dp, Color(0xff141414)),
                     RoundedCornerShape(8.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 10.dp)
                 .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         )
 
+        // Password Field
         Text(
             text = "Password",
             color = Color(0xff141414),
-            style = TextStyle(
-                fontSize = 14.sp
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
+            style = TextStyle(fontSize = 14.sp),
+            modifier = Modifier.fillMaxWidth()
         )
         BasicTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = onPasswordChange,
             visualTransformation = PasswordVisualTransformation(),
             textStyle = TextStyle(color = Color(0xff141414)),
             modifier = Modifier
@@ -152,22 +181,20 @@ fun SignUpFields(modifier: Modifier = Modifier) {
                     BorderStroke(1.dp, Color(0xff141414)),
                     RoundedCornerShape(8.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 10.dp)
                 .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         )
 
+        // Confirm Password Field
         Text(
             text = "Confirm Password",
             color = Color(0xff141414),
-            style = TextStyle(
-                fontSize = 14.sp
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
+            style = TextStyle(fontSize = 14.sp),
+            modifier = Modifier.fillMaxWidth()
         )
         BasicTextField(
             value = confirmPassword,
-            onValueChange = { confirmPassword = it },
+            onValueChange = onConfirmPasswordChange,
             visualTransformation = PasswordVisualTransformation(),
             textStyle = TextStyle(color = Color(0xff141414)),
             modifier = Modifier
@@ -177,8 +204,8 @@ fun SignUpFields(modifier: Modifier = Modifier) {
                     BorderStroke(1.dp, Color(0xff141414)),
                     RoundedCornerShape(8.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 10.dp)
                 .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         )
     }
 }
@@ -193,14 +220,14 @@ fun SignUpButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
             .clip(RoundedCornerShape(8.dp))
             .background(Color(0xff128819))
             .clickable { onClick() }
-            .padding(horizontal = 68.dp, vertical = 10.dp)
-
+            .padding(vertical = 12.dp)
     ) {
         Text(
             text = "Sign Up",
             color = Color.White,
             style = TextStyle(
-                fontSize = 14.sp
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
             )
         )
     }
@@ -211,9 +238,7 @@ fun OrSignUpWith(modifier: Modifier = Modifier) {
     Text(
         text = "or Sign Up with",
         color = Color(0xff141414),
-        style = TextStyle(
-            fontSize = 14.sp
-        ),
+        style = TextStyle(fontSize = 14.sp),
         modifier = modifier
     )
 }
@@ -221,17 +246,17 @@ fun OrSignUpWith(modifier: Modifier = Modifier) {
 @Composable
 fun SocialSignUpButtons(modifier: Modifier = Modifier) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(21.dp, Alignment.Top),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
             .requiredWidth(325.dp)
     ) {
         SocialSignUpButton(
             imageResource = R.drawable.logosfacebook,
-            buttonText = "Sign Up With Facebook"
+            buttonText = "Sign Up with Facebook"
         )
         SocialSignUpButton(
             imageResource = R.drawable.flatcoloriconsgoogle,
-            buttonText = "Sign Up With Google"
+            buttonText = "Sign Up with Google"
         )
     }
 }
@@ -242,41 +267,40 @@ fun SocialSignUpButton(
     buttonText: String,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .requiredHeight(41.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(8.dp))
             .border(
                 BorderStroke(1.dp, Color(0xff141414)),
                 RoundedCornerShape(8.dp)
             )
-            .padding(horizontal = 13.dp, vertical = 10.dp)
+            .clickable { /* Handle social sign up */ }
+            .padding(horizontal = 16.dp)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.Start),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Image(
-                painter = painterResource(id = imageResource),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = buttonText,
-                color = Color(0xff141414),
-                style = TextStyle(
-                    fontSize = 14.sp
-                )
-            )
-        }
+        Image(
+            painter = painterResource(id = imageResource),
+            contentDescription = null,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = buttonText,
+            color = Color(0xff141414),
+            style = TextStyle(fontSize = 14.sp)
+        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun SignUpScreenPreview() {
-    SignUpScreen(onSignUpSuccess = {})
+    // Provide a dummy UserViewModel for preview
+    val userViewModel = UserViewModel()
+    SignUpScreen(
+        userViewModel = userViewModel,
+        onSignUpSuccess = {}
+    )
 }
