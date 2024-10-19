@@ -14,14 +14,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -34,15 +38,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.freshly.R
 import java.util.Calendar
 
 @Composable
@@ -50,7 +56,6 @@ fun EditProfileScreen(
     userViewModel: UserViewModel,
     onSave: () -> Unit,
     onNavigateBack: () -> Unit,
-    onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Observe the userInfo from UserViewModel
@@ -62,8 +67,9 @@ fun EditProfileScreen(
     var lastName by remember { mutableStateOf(userInfo.lastName) }
     var birthdate by remember { mutableStateOf(userInfo.birthdate) }
     var address by remember { mutableStateOf(userInfo.address) }
-    var email by remember { mutableStateOf(userInfo.email) }
-    var password by remember { mutableStateOf(userInfo.password) }
+    var updatedPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
 
     val context = LocalContext.current
 
@@ -85,227 +91,360 @@ fun EditProfileScreen(
         )
     }
 
-    Box(
+    // State for showing custom dialogs
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+
+    Column(
         modifier = modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Top bar with back arrow, "User Profile" text, and home button
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            IconButton(onClick = onNavigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color(0xFF141414)
-                )
-            }
-            Text(
-                text = "User Profile",
-                color = Color.Black,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            )
-            IconButton(onClick = { /* Navigate to Home */ }) {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Home",
-                    tint = Color(0xFF141414),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-
-        // Main content
+        // Content with scroll capability
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
-                .padding(top = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally // Center content horizontally
         ) {
-            // Profile Icon centered and larger
+            // Spacer for top padding
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Top bar with back arrow and "Edit Profile" text centered
             Box(
                 modifier = Modifier
-                    .size(100.dp) // Increase the size of the icon
-                    .clip(CircleShape)
-                    .background(Color(0xFF128819)),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Profile Image",
-                    tint = Color.White,
-                    modifier = Modifier.size(80.dp) // Adjust icon size inside the box
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp)) // Add space between icon and content
-
-            // Personal Information Section
-            Text(
-                text = "Personal Information",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF201E1E),
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .align(Alignment.Start) // Align text to the start
-            )
-
-            // First Name and Middle Initial
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                EditableField(
-                    label = "First Name",
-                    value = firstName,
-                    onValueChange = { firstName = it },
-                    modifier = Modifier.weight(1f)
-                )
-                EditableField(
-                    label = "Middle Initial",
-                    value = middleInitial,
-                    onValueChange = { middleInitial = it },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // Last Name and Birthdate
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                EditableField(
-                    label = "Last Name",
-                    value = lastName,
-                    onValueChange = { lastName = it },
-                    modifier = Modifier.weight(1f)
-                )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Birthdate",
-                        color = Color.Black,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                // Back arrow aligned to the start
+                IconButton(
+                    onClick = onNavigateBack,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.eparrowleftnotail),
+                        contentDescription = "Back",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Unspecified
                     )
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFFCBC6C6)),
-                        color = Color(0xFFF8F8F8),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(40.dp)
-                            .clickable { datePickerDialog.show() }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                }
+
+                // "Edit Profile" text centered
+                Text(
+                    text = "Edit Profile",
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            // Spacer between top bar and content
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Main content
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Profile Icon centered
+                Box(
+                    modifier = Modifier
+                        .size(100.dp) // Reduced size from 100.dp
+                        .align(Alignment.CenterHorizontally)
+                        .background(Color(0xFF128819), shape = CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Profile Image",
+                        tint = Color.White,
+                        modifier = Modifier.size(128.dp) // Adjusted icon size
+                    )
+                }
+
+                // Spacer between profile icon and content
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Personal Information Section
+                Text(
+                    text = "Personal Information",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF201E1E),
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .align(Alignment.Start)
+                )
+
+                // First Name and Middle Initial
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    EditableField(
+                        label = "First Name",
+                        value = firstName,
+                        onValueChange = { firstName = it },
+                        modifier = Modifier.weight(1f)
+                    )
+                    EditableField(
+                        label = "Middle Initial",
+                        value = middleInitial,
+                        onValueChange = { middleInitial = it },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                // Last Name and Birthdate
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    EditableField(
+                        label = "Last Name",
+                        value = lastName,
+                        onValueChange = { lastName = it },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Birthdate",
+                            color = Color.Black,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, Color(0xFFCBC6C6)),
+                            color = Color(0xFFF8F8F8),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .clickable { datePickerDialog.show() }
                         ) {
-                            Text(
-                                text = birthdate,
-                                color = Color(0xFF141414),
-                                fontSize = 14.sp,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Icon(
-                                imageVector = Icons.Default.CalendarToday,
-                                contentDescription = "Select Date",
-                                tint = Color(0xFF141414)
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = birthdate,
+                                    color = Color(0xFF141414),
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.CalendarToday,
+                                    contentDescription = "Select Date",
+                                    tint = Color(0xFF141414)
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            // Address
-            EditableField(
-                label = "Address",
-                value = address,
-                onValueChange = { address = it }
-            )
+                // Address
+                EditableField(
+                    label = "Address",
+                    value = address,
+                    onValueChange = { address = it }
+                )
 
-            // Email
-            EditableField(
-                label = "Email",
-                value = email,
-                onValueChange = { email = it }
-            )
+                // Update Password
+                EditableField(
+                    label = "Update Password",
+                    value = updatedPassword,
+                    onValueChange = { updatedPassword = it },
+                    isPassword = true
+                )
 
-            // Password
-            EditableField(
-                label = "Password",
-                value = password,
-                onValueChange = { password = it },
-                isPassword = true
-            )
-        }
+                // Confirm Password
+                EditableField(
+                    label = "Confirm Password",
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    isPassword = true
+                )
 
-        // Buttons at the bottom
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Save Changes Button
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF128819))
-                    .clickable {
-                        // Update UserViewModel with the collected information
-                        val updatedUserInfo = UserInfo(
-                            firstName = firstName,
-                            middleInitial = middleInitial,
-                            lastName = lastName,
-                            birthdate = birthdate,
-                            address = address,
-                            email = email,
-                            password = password
+                // Reserve space for error message
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(20.dp), // Fixed height
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    if (passwordError.isNotEmpty()) {
+                        Text(
+                            text = passwordError,
+                            color = Color.Red,
+                            fontSize = 14.sp
                         )
-                        userViewModel.updateUserInfo(updatedUserInfo)
-                        onSave()
                     }
-                    .padding(vertical = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Save Changes",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                }
 
-            // Log out Button
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF8B0000))
-                    .clickable { onLogout() }
-                    .padding(vertical = 16.dp),
-                contentAlignment = Alignment.Center
+                // Save Changes Button
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        showConfirmationDialog = true
+                        passwordError = "" // Clear previous error
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "Save Changes",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // Spacer at the bottom to prevent content from being cut off
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+
+    // Custom Confirmation Dialog
+    if (showConfirmationDialog) {
+        CustomDialog(
+            onDismissRequest = { showConfirmationDialog = false },
+            title = "Confirm Changes",
+            message = "Are you sure you want to save these changes?",
+            confirmButtonText = "Confirm",
+            onConfirm = {
+                showConfirmationDialog = false
+                // Handle save action
+                if (updatedPassword == confirmPassword) {
+                    val updatedUserInfo = userInfo.copy(
+                        firstName = firstName,
+                        middleInitial = middleInitial,
+                        lastName = lastName,
+                        birthdate = birthdate,
+                        address = address,
+                        password = if (updatedPassword.isNotEmpty()) updatedPassword else userInfo.password
+                    )
+                    userViewModel.updateUserInfo(updatedUserInfo)
+                    // Show success dialog
+                    showSuccessDialog = true
+                } else {
+                    // Show error dialog
+                    passwordError = "Passwords do not match"
+                    showErrorDialog = true
+                }
+            },
+            dismissButtonText = "Cancel",
+            onDismiss = { showConfirmationDialog = false }
+        )
+    }
+
+    // Custom Success Dialog
+    if (showSuccessDialog) {
+        CustomDialog(
+            onDismissRequest = { /* Do nothing */ },
+            title = "Success",
+            message = "Your changes have been saved successfully.",
+            confirmButtonText = "OK",
+            onConfirm = {
+                showSuccessDialog = false
+                onSave()
+            }
+        )
+    }
+
+    // Custom Error Dialog
+    if (showErrorDialog) {
+        CustomDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = "Error",
+            message = "Passwords do not match.",
+            confirmButtonText = "OK",
+            onConfirm = {
+                showErrorDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun CustomDialog(
+    onDismissRequest: () -> Unit,
+    title: String,
+    message: String,
+    confirmButtonText: String,
+    onConfirm: () -> Unit,
+    dismissButtonText: String? = null,
+    onDismiss: (() -> Unit)? = null
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .clickable(onClick = onDismissRequest)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(24.dp)
+                .clickable(enabled = false) { }
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Log out",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    text = title,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF201E1E)
                 )
+                Text(
+                    text = message,
+                    fontSize = 16.sp,
+                    color = Color(0xFF141414)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = if (dismissButtonText != null) Arrangement.SpaceBetween else Arrangement.End
+                ) {
+                    if (dismissButtonText != null && onDismiss != null) {
+                        Button(
+                            onClick = onDismiss,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFAAAAAA)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = dismissButtonText,
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = onConfirm,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = confirmButtonText,
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
     }
@@ -319,6 +458,7 @@ fun EditableField(
     isPassword: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -341,7 +481,7 @@ fun EditableField(
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+                visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                 textStyle = TextStyle(
                     color = Color(0xFF141414),
                     fontSize = 14.sp,
@@ -351,11 +491,29 @@ fun EditableField(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 decorationBox = { innerTextField ->
-                    Box(
-                        contentAlignment = Alignment.CenterStart,
-                        modifier = Modifier.fillMaxSize()
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        innerTextField()
+                        Box(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            innerTextField()
+                        }
+                        if (isPassword) {
+                            IconButton(
+                                onClick = { passwordVisible = !passwordVisible },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                                val description = if (passwordVisible) "Hide password" else "Show password"
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = description,
+                                    tint = Color(0xFF141414)
+                                )
+                            }
+                        }
                     }
                 }
             )

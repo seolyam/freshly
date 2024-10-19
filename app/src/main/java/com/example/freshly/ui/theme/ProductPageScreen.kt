@@ -140,12 +140,10 @@ fun ProductPage(
         ) {
             // Back Arrow with navigation function
             Icon(
-                painter = painterResource(id = R.drawable.eparrowleft),
+                painter = painterResource(id = R.drawable.eparrowleftnotail),
                 contentDescription = "Back",
-                tint = Color(0xFF201E1E),  // Replace black with #201E1E
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable { onNavigateBack() }  // Navigate back to homepage
+                modifier = Modifier.size(24.dp),
+                tint = Color.Unspecified // Use Color.Unspecified to retain the original colors of the PNG
             )
             // Logo
             Text(

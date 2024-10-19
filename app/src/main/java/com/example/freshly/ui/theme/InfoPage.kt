@@ -2,7 +2,9 @@
 package com.example.freshly.ui.theme
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,15 +12,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,15 +30,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.freshly.R
 import java.util.Calendar
 
 @Composable
@@ -72,8 +77,10 @@ fun InfoPage(
         )
     }
 
-    // Define your custom colors (if needed)
+    // Define your custom colors
     val primaryColor = Color(0xFF201E1E) // Your black font color
+    val placeholderColor = Color(0xFFA8A8A8) // Gray placeholder color
+    val borderColor = Color(0xFF201E1E) // Border color for text fields
 
     Column(
         modifier = Modifier
@@ -92,9 +99,10 @@ fun InfoPage(
         ) {
             IconButton(onClick = { onNavigateBack() }) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    painter = painterResource(id = R.drawable.eparrowleftnotail),
                     contentDescription = "Back",
-                    tint = primaryColor
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.Unspecified // Use Color.Unspecified to retain the original colors of the PNG
                 )
             }
         }
@@ -122,6 +130,7 @@ fun InfoPage(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // First Name Field
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "First Name",
@@ -130,16 +139,15 @@ fun InfoPage(
                     color = primaryColor,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                OutlinedTextField(
+                CustomBasicTextField(
                     value = firstName,
                     onValueChange = { firstName = it },
-                    placeholder = { Text(text = "Ex. Juan", color = Color(0xFFA8A8A8)) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
+                    placeholder = "Ex. Juan",
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
+            // Middle Initial Field
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Middle Initial",
@@ -148,12 +156,10 @@ fun InfoPage(
                     color = primaryColor,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                OutlinedTextField(
+                CustomBasicTextField(
                     value = middleInitial,
                     onValueChange = { middleInitial = it },
-                    placeholder = { Text(text = "Ex. J", color = Color(0xFFA8A8A8)) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
+                    placeholder = "Ex. J",
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -166,6 +172,7 @@ fun InfoPage(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Last Name Field
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Last Name",
@@ -174,16 +181,15 @@ fun InfoPage(
                     color = primaryColor,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                OutlinedTextField(
+                CustomBasicTextField(
                     value = lastName,
                     onValueChange = { lastName = it },
-                    placeholder = { Text(text = "Ex. Juan", color = Color(0xFFA8A8A8)) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
+                    placeholder = "Ex. Dela Cruz",
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
+            // Birthdate Field
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Birthdate",
@@ -192,16 +198,18 @@ fun InfoPage(
                     color = primaryColor,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                OutlinedTextField(
+                CustomBasicTextField(
                     value = birthdate,
-                    onValueChange = { birthdate = it },
-                    placeholder = { Text(text = "MM/DD/YYYY", color = Color(0xFFA8A8A8)) },
+                    onValueChange = { /* Read-only */ },
+                    placeholder = "MM/DD/YYYY",
                     readOnly = true,
-                    singleLine = true,
                     trailingIcon = {
-                        IconButton(onClick = {
-                            datePickerDialog.show()
-                        }) {
+                        IconButton(
+                            onClick = {
+                                datePickerDialog.show()
+                            },
+                            modifier = Modifier.size(24.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Filled.CalendarToday,
                                 contentDescription = "Select Date",
@@ -209,7 +217,6 @@ fun InfoPage(
                             )
                         }
                     },
-                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -217,7 +224,7 @@ fun InfoPage(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Address
+        // Address Field
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = "Address",
@@ -226,12 +233,10 @@ fun InfoPage(
                 color = primaryColor,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
-            OutlinedTextField(
+            CustomBasicTextField(
                 value = address,
                 onValueChange = { address = it },
-                placeholder = { Text(text = "Ex. 1234 Barangay ABC, Bacolod City", color = Color(0xFFA8A8A8)) },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
+                placeholder = "Ex. 1234 Barangay ABC, Bacolod City",
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -274,29 +279,98 @@ fun SignupToFreshly(modifier: Modifier = Modifier) {
     Text(
         textAlign = TextAlign.Center,
         text = buildAnnotatedString {
-            withStyle(style = SpanStyle(
-                color = Color(0xff201e1e),
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold)) { append("Sign-up to") }
-            withStyle(style = SpanStyle(
-                color = Color(0xff201e1e),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold)) { append(" ") }
-            withStyle(style = SpanStyle(
-                color = Color(0xff128819),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold)) { append("Fresh") }
-            withStyle(style = SpanStyle(
-                color = Color(0xff6fb103),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold)) { append("ly") }
+            withStyle(
+                style = SpanStyle(
+                    color = Color(0xff201e1e),
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            ) { append("Sign-up to") }
+            withStyle(
+                style = SpanStyle(
+                    color = Color(0xff201e1e),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            ) { append(" ") }
+            withStyle(
+                style = SpanStyle(
+                    color = Color(0xff128819),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            ) { append("Fresh") }
+            withStyle(
+                style = SpanStyle(
+                    color = Color(0xff6fb103),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            ) { append("ly") }
         },
         modifier = modifier
     )
 }
 
-@Preview
 @Composable
-private fun SignupToFreshlyPreview() {
-    SignupToFreshly(Modifier)
+fun CustomBasicTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    readOnly: Boolean = false,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    val primaryColor = Color(0xFF201E1E)
+    val placeholderColor = Color(0xFFA8A8A8)
+    val borderColor = Color(0xFF201E1E)
+
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        readOnly = readOnly,
+        textStyle = TextStyle(
+            color = primaryColor,
+            fontSize = 14.sp
+        ),
+        cursorBrush = SolidColor(primaryColor),
+        decorationBox = { innerTextField ->
+            Box(
+                modifier = Modifier
+                    .height(48.dp) // Set fixed height
+                    .border(
+                        width = 1.dp,
+                        color = borderColor,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxSize() // Fill the height and width
+                ) {
+                    Box(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        if (value.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                color = placeholderColor,
+                                fontSize = 14.sp
+                            )
+                        }
+                        innerTextField()
+                    }
+                    if (trailingIcon != null) {
+                        Box(
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            trailingIcon()
+                        }
+                    }
+                }
+            }
+        },
+        modifier = modifier
+    )
 }

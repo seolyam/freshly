@@ -49,9 +49,10 @@ fun OrderConfirmation(
             navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
-                        painter = painterResource(id = R.drawable.eparrowleft),
+                        painter = painterResource(id = R.drawable.eparrowleftnotail),
                         contentDescription = "Back",
-                        tint = Color(0xFF141414)
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Unspecified // Use Color.Unspecified to retain the original colors of the PNG
                     )
                 }
             },

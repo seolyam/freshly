@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.freshly.ui.Phone
 import com.example.freshly.ui.theme.CartScreen
 import com.example.freshly.ui.theme.CartViewModel
+import com.example.freshly.ui.theme.Constants.IS_DEVELOPMENT_MODE
 import com.example.freshly.ui.theme.EditProfileScreen
 import com.example.freshly.ui.theme.FreshlyTheme
 import com.example.freshly.ui.theme.HomePageScreen
@@ -25,6 +26,7 @@ import com.example.freshly.ui.theme.LoginScreen
 import com.example.freshly.ui.theme.OrderConfirmation
 import com.example.freshly.ui.theme.ProductPageScreen
 import com.example.freshly.ui.theme.SignUpScreen
+import com.example.freshly.ui.theme.UserProfileScreen
 import com.example.freshly.ui.theme.UserViewModel
 
 class MainActivity : ComponentActivity() {
@@ -59,7 +61,7 @@ fun NavigationComponent(
 ) {
     NavHost(
         navController = navController,
-        startDestination = "phone",
+        startDestination = if (IS_DEVELOPMENT_MODE) "info" else "phone",
         modifier = modifier
     ) {
         composable("phone") {
@@ -69,7 +71,10 @@ fun NavigationComponent(
             )
         }
         composable("login") {
-            LoginScreen(onLoginSuccess = { navController.navigate("home") })
+            LoginScreen(
+                userViewModel = userViewModel,
+                onLoginSuccess = { navController.navigate("home") }
+            )
         }
         composable("signup") {
             SignUpScreen(
@@ -92,7 +97,7 @@ fun NavigationComponent(
                         "product/${product.name}/${product.price}/${product.description}/${product.allergens}"
                     )
                 },
-                onProfileClick = { navController.navigate("editProfile") }
+                onProfileClick = { navController.navigate("userProfile") }
             )
         }
         composable("cart") {
@@ -145,17 +150,25 @@ fun NavigationComponent(
                 }
             )
         }
-        composable("editProfile") {
-            EditProfileScreen(
+        // Add UserProfileScreen to the navigation graph
+        composable("userProfile") {
+            UserProfileScreen(
                 userViewModel = userViewModel,
-                onSave = { /* Implement save functionality */ },
-                onNavigateBack = { navController.popBackStack() },
+                onEditProfile = { navController.navigate("editProfile") },
                 onLogout = {
                     // Handle logout action
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true }
                     }
                 }
+            )
+        }
+        composable("editProfile") {
+            EditProfileScreen(
+                userViewModel = userViewModel,
+                onSave = { navController.popBackStack() },
+                onNavigateBack = { navController.popBackStack() }
+                // Removed onLogout from EditProfileScreen
             )
         }
     }

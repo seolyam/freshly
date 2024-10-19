@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freshly.R
@@ -52,6 +51,11 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    // State variables for error messages
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
+    var confirmPasswordError by remember { mutableStateOf("") }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -64,15 +68,61 @@ fun SignUpScreen(
         Spacer(modifier = Modifier.height(16.dp))
         SignUpFields(
             email = email,
-            onEmailChange = { email = it },
+            onEmailChange = {
+                email = it
+                emailError = "" // Clear error when user starts typing
+            },
+            emailError = emailError,
             password = password,
-            onPasswordChange = { password = it },
+            onPasswordChange = {
+                password = it
+                passwordError = "" // Clear error when user starts typing
+            },
+            passwordError = passwordError,
             confirmPassword = confirmPassword,
-            onConfirmPasswordChange = { confirmPassword = it }
+            onConfirmPasswordChange = {
+                confirmPassword = it
+                confirmPasswordError = "" // Clear error when user starts typing
+            },
+            confirmPasswordError = confirmPasswordError
         )
         Spacer(modifier = Modifier.height(16.dp))
         SignUpButton(onClick = {
-            if (password == confirmPassword && email.isNotEmpty()) {
+            var hasError = false
+
+            // Reset error messages
+            emailError = ""
+            passwordError = ""
+            confirmPasswordError = ""
+
+            // Validate email
+            if (email.isEmpty()) {
+                emailError = "Email is required"
+                hasError = true
+            } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                emailError = "Invalid email address"
+                hasError = true
+            }
+
+            // Validate password
+            if (password.isEmpty()) {
+                passwordError = "Password is required"
+                hasError = true
+            } else if (password.length < 6) {
+                passwordError = "Password must be at least 6 characters"
+                hasError = true
+            }
+
+            // Validate confirm password
+            if (confirmPassword.isEmpty()) {
+                confirmPasswordError = "Please confirm your password"
+                hasError = true
+            } else if (password != confirmPassword) {
+                confirmPasswordError = "Passwords do not match"
+                hasError = true
+            }
+
+            if (!hasError) {
                 // Update UserViewModel with email and password
                 val userInfo = UserInfo(
                     email = email,
@@ -80,8 +130,6 @@ fun SignUpScreen(
                 )
                 userViewModel.updateUserInfo(userInfo)
                 onSignUpSuccess()
-            } else {
-                // Handle validation errors (e.g., show a message)
             }
         })
         Spacer(modifier = Modifier.height(16.dp))
@@ -128,10 +176,13 @@ fun FreshlySignUp(modifier: Modifier = Modifier) {
 fun SignUpFields(
     email: String,
     onEmailChange: (String) -> Unit,
+    emailError: String,
     password: String,
     onPasswordChange: (String) -> Unit,
+    passwordError: String,
     confirmPassword: String,
     onConfirmPasswordChange: (String) -> Unit,
+    confirmPasswordError: String,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -155,12 +206,20 @@ fun SignUpFields(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
                 .border(
-                    BorderStroke(1.dp, Color(0xff141414)),
+                    BorderStroke(1.dp, if (emailError.isEmpty()) Color(0xff141414) else Color.Red),
                     RoundedCornerShape(8.dp)
                 )
                 .background(Color.White)
                 .padding(horizontal = 16.dp, vertical = 10.dp)
         )
+        if (emailError.isNotEmpty()) {
+            Text(
+                text = emailError,
+                color = Color.Red,
+                style = TextStyle(fontSize = 12.sp),
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
 
         // Password Field
         Text(
@@ -178,12 +237,20 @@ fun SignUpFields(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
                 .border(
-                    BorderStroke(1.dp, Color(0xff141414)),
+                    BorderStroke(1.dp, if (passwordError.isEmpty()) Color(0xff141414) else Color.Red),
                     RoundedCornerShape(8.dp)
                 )
                 .background(Color.White)
                 .padding(horizontal = 16.dp, vertical = 10.dp)
         )
+        if (passwordError.isNotEmpty()) {
+            Text(
+                text = passwordError,
+                color = Color.Red,
+                style = TextStyle(fontSize = 12.sp),
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
 
         // Confirm Password Field
         Text(
@@ -201,12 +268,20 @@ fun SignUpFields(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
                 .border(
-                    BorderStroke(1.dp, Color(0xff141414)),
+                    BorderStroke(1.dp, if (confirmPasswordError.isEmpty()) Color(0xff141414) else Color.Red),
                     RoundedCornerShape(8.dp)
                 )
                 .background(Color.White)
                 .padding(horizontal = 16.dp, vertical = 10.dp)
         )
+        if (confirmPasswordError.isNotEmpty()) {
+            Text(
+                text = confirmPasswordError,
+                color = Color.Red,
+                style = TextStyle(fontSize = 12.sp),
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
     }
 }
 
@@ -292,15 +367,4 @@ fun SocialSignUpButton(
             style = TextStyle(fontSize = 14.sp)
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SignUpScreenPreview() {
-    // Provide a dummy UserViewModel for preview
-    val userViewModel = UserViewModel()
-    SignUpScreen(
-        userViewModel = userViewModel,
-        onSignUpSuccess = {}
-    )
 }
