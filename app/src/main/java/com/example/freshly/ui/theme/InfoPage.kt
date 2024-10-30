@@ -1,6 +1,7 @@
 // InfoPage.kt
 package com.example.freshly.ui.theme
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -246,17 +247,21 @@ fun InfoPage(
         // Sign Up Button
         Button(
             onClick = {
-                // Update UserViewModel with the collected information
-                val updatedUserInfo = UserInfo(
+                userViewModel.updateUserProfile(
                     firstName = firstName,
                     middleInitial = middleInitial,
                     lastName = lastName,
                     birthdate = birthdate,
-                    address = address
+                    address = address,
+                    onSuccess = {
+                        // Only navigate if update succeeds
+                        onSignUpComplete()
+                    },
+                    onError = { errorMessage ->
+                        // Show an error message if update fails
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                    }
                 )
-                userViewModel.updateUserInfo(updatedUserInfo)
-                // Navigate to the next screen
-                onSignUpComplete()
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
             shape = RoundedCornerShape(8.dp),
@@ -273,7 +278,6 @@ fun InfoPage(
         }
     }
 }
-
 @Composable
 fun SignupToFreshly(modifier: Modifier = Modifier) {
     Text(
@@ -314,12 +318,13 @@ fun SignupToFreshly(modifier: Modifier = Modifier) {
 
 @Composable
 fun CustomBasicTextField(
+    modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
     readOnly: Boolean = false,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    trailingIcon: @Composable (() -> Unit)? = null
+
 ) {
     val primaryColor = Color(0xFF201E1E)
     val placeholderColor = Color(0xFFA8A8A8)

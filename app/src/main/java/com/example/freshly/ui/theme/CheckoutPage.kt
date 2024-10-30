@@ -1,4 +1,6 @@
-// Import necessary packages
+// CheckoutPage.kt
+package com.example.freshly.ui.theme
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,10 +38,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freshly.R
-import com.example.freshly.ui.theme.CartItem
-import com.example.freshly.ui.theme.CartViewModel
-import com.example.freshly.ui.theme.PlaceholderImage
-import com.example.freshly.ui.theme.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,52 +48,39 @@ fun CheckoutPage(
     onPlaceOrder: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Get cart items and total price from the ViewModel
     val cartItems by cartViewModel.cartItems.collectAsState()
     val totalProductPrice = cartViewModel.getTotalPrice()
-    val shippingFee = 15.0  // Example shipping fee
+    val shippingFee = 15.0
     val totalPrice = totalProductPrice + shippingFee
-
-    // Get user information from UserViewModel
     val userInfo by userViewModel.userInfo.collectAsState()
-
     val shippingAddress = "${userInfo.firstName} ${userInfo.middleInitial} ${userInfo.lastName}\n${userInfo.address}"
     val paymentMethod = "Cash On Delivery"
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
+        modifier = modifier.fillMaxSize().background(Color.White)
     ) {
-        // Top Bar with Back Button and Title
         TopAppBar(
-            title = { Text(text = "CHECKOUT", fontSize = 14.sp, color = Color(0xFF141414)) },
+            title = { Text("CHECKOUT", fontSize = 14.sp, color = Color(0xFF141414)) },
             navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
                         painter = painterResource(id = R.drawable.eparrowleftnotail),
                         contentDescription = "Back",
                         modifier = Modifier.size(24.dp),
-                        tint = Color.Unspecified // Use Color.Unspecified to retain the original colors of the PNG
+                        tint = Color.Unspecified
                     )
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.White,
-                titleContentColor = Color(0xFF141414),
-                navigationIconContentColor = Color(0xFF141414)
-            )
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
         )
 
-
-        // Shipping Details
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Shipping Details:", fontSize = 20.sp, color = Color(0xFF141414))
+            Text("Shipping Details:", fontSize = 20.sp, color = Color(0xFF141414))
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = shippingAddress, fontSize = 15.sp, color = Color(0xFF898989))
+            Text(shippingAddress, fontSize = 15.sp, color = Color(0xFF898989))
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Edit Info",
+                "Edit Info",
                 fontSize = 15.sp,
                 color = Color(0xFF4E4E4E),
                 textDecoration = TextDecoration.Underline,
@@ -104,7 +89,6 @@ fun CheckoutPage(
         }
         HorizontalDivider(thickness = 1.dp, color = Color(0xFFC4C4C4))
 
-        // Cart Items
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -116,7 +100,6 @@ fun CheckoutPage(
             }
         }
 
-        // Payment Method and Totals
         Column(modifier = Modifier.padding(16.dp)) {
             HorizontalDivider(thickness = 1.dp, color = Color(0xFFC4C4C4))
             Spacer(modifier = Modifier.height(8.dp))
@@ -124,23 +107,30 @@ fun CheckoutPage(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Payment Method:", fontSize = 15.sp, color = Color(0xFF141414))
-                Text(text = paymentMethod, fontSize = 15.sp, color = Color(0xFF898989))
+                Text("Payment Method:", fontSize = 15.sp, color = Color(0xFF141414))
+                Text(paymentMethod, fontSize = 15.sp, color = Color(0xFF898989))
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Total Products: ₱${"%.2f".format(totalProductPrice)}", fontSize = 15.sp, color = Color(0xFF898989))
-            Text(text = "Shipping Fee: ₱${"%.2f".format(shippingFee)}", fontSize = 15.sp, color = Color(0xFF898989))
+            Text(
+                "Total Products: ₱${"%.2f".format(totalProductPrice)}",
+                fontSize = 15.sp,
+                color = Color(0xFF898989)
+            )
+            Text(
+                "Shipping Fee: ₱${"%.2f".format(shippingFee)}",
+                fontSize = 15.sp,
+                color = Color(0xFF898989)
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Total:", fontSize = 20.sp, color = Color(0xFF141414))
-                Text(text = "₱${"%.2f".format(totalPrice)}", fontSize = 20.sp, color = Color(0xFF141414))
+                Text("Total:", fontSize = 20.sp, color = Color(0xFF141414))
+                Text("₱${"%.2f".format(totalPrice)}", fontSize = 20.sp, color = Color(0xFF141414))
             }
         }
 
-        // Place Order Button
         Button(
             onClick = onPlaceOrder,
             modifier = Modifier
@@ -150,7 +140,7 @@ fun CheckoutPage(
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Text(text = "Place Order", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text("Place Order", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -160,23 +150,33 @@ fun CheckoutCartItem(item: CartItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Replace with actual product image
         PlaceholderImage(
             modifier = Modifier
                 .size(60.dp)
                 .clip(RoundedCornerShape(8.dp))
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(text = item.name, fontSize = 16.sp, color = Color(0xFF06161C), fontWeight = FontWeight.Medium)
-            Text(text = "₱${"%.2f".format(item.price)} x ${item.quantity}", fontSize = 16.sp, color = Color(0xFFFF324B))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                item.name,
+                fontSize = 16.sp,
+                color = Color(0xFF06161C),
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                "₱${"%.2f".format(item.price)} x ${item.quantity}",
+                fontSize = 16.sp,
+                color = Color(0xFFFF324B)
+            )
         }
-        Text(text = "x${item.quantity}", fontSize = 18.sp, color = Color(0xFF06161C), fontWeight = FontWeight.Medium)
+        Text(
+            "x${item.quantity}",
+            fontSize = 18.sp,
+            color = Color(0xFF06161C),
+            fontWeight = FontWeight.Medium
+        )
     }
 }

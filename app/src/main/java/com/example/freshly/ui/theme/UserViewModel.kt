@@ -1,44 +1,167 @@
-// UserViewModel.kt
 package com.example.freshly.ui.theme
 
 import androidx.lifecycle.ViewModel
-import com.example.freshly.ui.theme.Constants.IS_DEVELOPMENT_MODE
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-
+import kotlinx.coroutines.launch
 
 data class UserInfo(
+    var username: String = "",
+    var email: String = "",
+    var token: String = "",
     var firstName: String = "",
     var middleInitial: String = "",
     var lastName: String = "",
     var birthdate: String = "",
-    var address: String = "",
-    var email: String = "",
-    var password: String = ""
+    var address: String = ""
 )
 
-class UserViewModel : ViewModel() {
-    private val _userInfo = MutableStateFlow(
-        if (IS_DEVELOPMENT_MODE) {
-            UserInfo(
-                firstName = "Dev",
-                middleInitial = "D",
-                lastName = "User",
-                birthdate = "01/01/1990",
-                address = "123 Developer Lane",
-                email = "developer@example.com",
-                password = "password123"
-            )
-        } else {
-            UserInfo()
-        }
-    )
+class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
+    private val apiService: ApiService = ApiClient.retrofit.create(ApiService::class.java)
+
+    private val _userInfo = MutableStateFlow(UserInfo())
     val userInfo: StateFlow<UserInfo> get() = _userInfo
 
-    fun updateUserInfo(updatedInfo: UserInfo) {
-        _userInfo.value = updatedInfo
+    private val _errorMessage = MutableStateFlow("")
+    val errorMessage: StateFlow<String> get() = _errorMessage
+
+    // Register Function
+    fun register(username: String, email: String, password: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val request = RegisterRequest(username, email, password)
+                val response = apiService.register(request)
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody != null && responseBody.message != null) {
+                        // Successfully registered, proceed to login or set token
+                        onSuccess()
+                    } else {
+                        onError("Registration failed: No message in response")
+                    }
+                } else {
+                    onError("Registration failed: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                onError("An error occurred: ${e.message}")
+            }
+        }
+    }
+
+    // Login Function
+    fun login(usernameOrEmail: String, password: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val request = LoginRequest(usernameOrEmail, password)
+                val response = apiService.login(request)
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody != null && responseBody.token != null) {
+                        val token = responseBody.token
+                        tokenManager.saveToken(token)
+                        _userInfo.value = _userInfo.value.copy(
+                            username = usernameOrEmail,
+                            token = token
+                        )
+                        _errorMessage.value = ""
+                        onSuccess()
+                    } else {
+                        _errorMessage.value = responseBody?.message ?: "Login failed"
+                    }
+                } else {
+                    _errorMessage.value = "Login failed: ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "An error occurred: ${e.message}"
+            }
+        }
+    }
+
+    // Fetch User Profile
+    fun fetchUserProfile(onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token != null) {
+                    val response = apiService.getProfile("Bearer $token")
+                    if (response.isSuccessful) {
+                        val profile = response.body()
+                        if (profile != null) {
+                            _userInfo.value = _userInfo.value.copy(
+                                username = profile.username ?: _userInfo.value.username,
+                                email = profile.email ?: _userInfo.value.email,
+                                firstName = profile.firstName ?: "",
+                                middleInitial = profile.middleInitial ?: "",
+                                lastName = profile.lastName ?: "",
+                                birthdate = profile.birthdate ?: "",
+                                address = profile.address ?: ""
+                            )
+                            onSuccess()
+                        }
+                    } else {
+                        _errorMessage.value = "Failed to fetch profile"
+                    }
+                } else {
+                    _errorMessage.value = "User not authenticated"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "An error occurred: ${e.message}"
+            }
+        }
+    }
+
+    // Update User Profile
+    fun updateUserProfile(
+        firstName: String,
+        middleInitial: String,
+        lastName: String,
+        birthdate: String,
+        address: String,
+        password: String? = null,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token != null) {
+                    val request = UserProfileRequest(
+                        firstName = firstName,
+                        middleInitial = middleInitial,
+                        lastName = lastName,
+                        birthdate = birthdate,
+                        address = address,
+                        password = password
+                    )
+                    val response = apiService.updateProfile("Bearer $token", request)
+                    if (response.isSuccessful) {
+                        val profile = response.body()
+                        if (profile != null) {
+                            _userInfo.value = _userInfo.value.copy(
+                                firstName = profile.firstName ?: "",
+                                middleInitial = profile.middleInitial ?: "",
+                                lastName = profile.lastName ?: "",
+                                birthdate = profile.birthdate ?: "",
+                                address = profile.address ?: ""
+                            )
+                            onSuccess()
+                        }
+                    } else {
+                        onError("Failed to update profile")
+                    }
+                } else {
+                    onError("User not authenticated")
+                }
+            } catch (e: Exception) {
+                onError("An error occurred: ${e.message}")
+            }
+        }
+    }
+
+    // Logout Function
+    fun logout() {
+        tokenManager.clearToken()
+        _userInfo.value = UserInfo()
     }
 }
-
-
-

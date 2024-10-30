@@ -325,22 +325,27 @@ fun EditProfileScreen(
                 showConfirmationDialog = false
                 // Handle save action
                 if (updatedPassword == confirmPassword) {
-                    val updatedUserInfo = userInfo.copy(
+                    userViewModel.updateUserProfile(
                         firstName = firstName,
                         middleInitial = middleInitial,
                         lastName = lastName,
                         birthdate = birthdate,
                         address = address,
-                        password = if (updatedPassword.isNotEmpty()) updatedPassword else userInfo.password
+                        password = if (updatedPassword.isNotEmpty()) updatedPassword else null,
+                        onSuccess = {
+                            showSuccessDialog = true
+                        },
+                        onError = { errorMessage ->
+                            passwordError = errorMessage // Show error in UI
+                            showErrorDialog = true
+                        }
                     )
-                    userViewModel.updateUserInfo(updatedUserInfo)
-                    // Show success dialog
-                    showSuccessDialog = true
+
                 } else {
-                    // Show error dialog
                     passwordError = "Passwords do not match"
                     showErrorDialog = true
                 }
+
             },
             dismissButtonText = "Cancel",
             onDismiss = { showConfirmationDialog = false }

@@ -1,6 +1,6 @@
+// MainActivity.kt
 package com.example.freshly
 
-import CheckoutPage
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,7 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.freshly.ui.Phone
 import com.example.freshly.ui.theme.CartScreen
 import com.example.freshly.ui.theme.CartViewModel
-import com.example.freshly.ui.theme.Constants.IS_DEVELOPMENT_MODE
+import com.example.freshly.ui.theme.CheckoutPage
 import com.example.freshly.ui.theme.EditProfileScreen
 import com.example.freshly.ui.theme.FreshlyTheme
 import com.example.freshly.ui.theme.HomePageScreen
@@ -26,13 +29,21 @@ import com.example.freshly.ui.theme.LoginScreen
 import com.example.freshly.ui.theme.OrderConfirmation
 import com.example.freshly.ui.theme.ProductPageScreen
 import com.example.freshly.ui.theme.SignUpScreen
+import com.example.freshly.ui.theme.TokenManager
 import com.example.freshly.ui.theme.UserProfileScreen
 import com.example.freshly.ui.theme.UserViewModel
 
 class MainActivity : ComponentActivity() {
-    // Correctly initialize the ViewModels
     private val cartViewModel: CartViewModel by viewModels()
-    private val userViewModel: UserViewModel by viewModels()
+    private val userViewModel: UserViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val tokenManager = TokenManager(applicationContext)
+                @Suppress("UNCHECKED_CAST")
+                return UserViewModel(tokenManager) as T
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,9 +70,13 @@ fun NavigationComponent(
     cartViewModel: CartViewModel,
     userViewModel: UserViewModel
 ) {
+    // Observe userInfo token using collectAsState()
+    val userInfo = userViewModel.userInfo.collectAsState().value
+    val isLoggedIn = userInfo.token.isNotEmpty()
+
     NavHost(
         navController = navController,
-        startDestination = if (IS_DEVELOPMENT_MODE) "info" else "phone",
+        startDestination = if (isLoggedIn) "home" else "phone",
         modifier = modifier
     ) {
         composable("phone") {
@@ -150,13 +165,12 @@ fun NavigationComponent(
                 }
             )
         }
-        // Add UserProfileScreen to the navigation graph
         composable("userProfile") {
             UserProfileScreen(
                 userViewModel = userViewModel,
                 onEditProfile = { navController.navigate("editProfile") },
                 onLogout = {
-                    // Handle logout action
+                    userViewModel.logout() // Clear token on logout
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true }
                     }
@@ -168,7 +182,6 @@ fun NavigationComponent(
                 userViewModel = userViewModel,
                 onSave = { navController.popBackStack() },
                 onNavigateBack = { navController.popBackStack() }
-                // Removed onLogout from EditProfileScreen
             )
         }
     }

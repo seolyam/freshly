@@ -1,3 +1,4 @@
+// SignupScreen.kt
 package com.example.freshly.ui.theme
 
 import androidx.compose.foundation.BorderStroke
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -47,14 +48,19 @@ fun SignUpScreen(
     modifier: Modifier = Modifier
 ) {
     // State variables for user inputs
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
     // State variables for error messages
+    var usernameError by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
     var confirmPasswordError by remember { mutableStateOf("") }
+
+    // Observe error message from ViewModel
+    val errorMessage by userViewModel.errorMessage.collectAsState()
 
     Column(
         modifier = modifier
@@ -67,6 +73,12 @@ fun SignUpScreen(
         FreshlySignUp()
         Spacer(modifier = Modifier.height(16.dp))
         SignUpFields(
+            username = username,
+            onUsernameChange = {
+                username = it
+                usernameError = "" // Clear error when user starts typing
+            },
+            usernameError = usernameError,
             email = email,
             onEmailChange = {
                 email = it
@@ -91,9 +103,16 @@ fun SignUpScreen(
             var hasError = false
 
             // Reset error messages
+            usernameError = ""
             emailError = ""
             passwordError = ""
             confirmPasswordError = ""
+
+            // Validate username
+            if (username.isEmpty()) {
+                usernameError = "Username is required"
+                hasError = true
+            }
 
             // Validate email
             if (email.isEmpty()) {
@@ -123,15 +142,23 @@ fun SignUpScreen(
             }
 
             if (!hasError) {
-                // Update UserViewModel with email and password
-                val userInfo = UserInfo(
-                    email = email,
-                    password = password
-                )
-                userViewModel.updateUserInfo(userInfo)
-                onSignUpSuccess()
+                // Call register function from ViewModel
+                userViewModel.register(username, email, password) {
+                    onSignUpSuccess()
+                }
             }
         })
+
+        // Display error message from ViewModel
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                style = TextStyle(fontSize = 14.sp),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
         OrSignUpWith()
         Spacer(modifier = Modifier.height(16.dp))
@@ -174,6 +201,9 @@ fun FreshlySignUp(modifier: Modifier = Modifier) {
 
 @Composable
 fun SignUpFields(
+    username: String,
+    onUsernameChange: (String) -> Unit,
+    usernameError: String,
     email: String,
     onEmailChange: (String) -> Unit,
     emailError: String,
@@ -191,6 +221,36 @@ fun SignUpFields(
             .fillMaxWidth()
             .requiredWidth(326.dp)
     ) {
+        // Username Field
+        Text(
+            text = "Username",
+            color = Color(0xff141414),
+            style = TextStyle(fontSize = 14.sp),
+            modifier = Modifier.fillMaxWidth()
+        )
+        BasicTextField(
+            value = username,
+            onValueChange = onUsernameChange,
+            textStyle = TextStyle(color = Color(0xff141414)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .border(
+                    BorderStroke(1.dp, if (usernameError.isEmpty()) Color(0xff141414) else Color.Red),
+                    RoundedCornerShape(8.dp)
+                )
+                .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+        )
+        if (usernameError.isNotEmpty()) {
+            Text(
+                text = usernameError,
+                color = Color.Red,
+                style = TextStyle(fontSize = 12.sp),
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
+
         // Email Field
         Text(
             text = "Email",

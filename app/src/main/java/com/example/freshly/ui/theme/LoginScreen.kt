@@ -1,3 +1,4 @@
+// LoginScreen.kt
 package com.example.freshly.ui.theme
 
 import androidx.compose.foundation.BorderStroke
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -47,12 +48,15 @@ fun LoginScreen(
     modifier: Modifier = Modifier
 ) {
     // State variables for user inputs
-    var email by remember { mutableStateOf("") }
+    var usernameOrEmail by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     // State variables for error messages
-    var emailError by remember { mutableStateOf("") }
+    var usernameOrEmailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
+
+    // Observe error message from ViewModel
+    val errorMessage by userViewModel.errorMessage.collectAsState()
 
     Column(
         modifier = modifier
@@ -65,12 +69,12 @@ fun LoginScreen(
         Freshly()
         Spacer(modifier = Modifier.height(16.dp))
         LoginFields(
-            email = email,
-            onEmailChange = {
-                email = it
-                emailError = "" // Clear error when user starts typing
+            usernameOrEmail = usernameOrEmail,
+            onUsernameOrEmailChange = {
+                usernameOrEmail = it
+                usernameOrEmailError = "" // Clear error when user starts typing
             },
-            emailError = emailError,
+            usernameOrEmailError = usernameOrEmailError,
             password = password,
             onPasswordChange = {
                 password = it
@@ -83,15 +87,12 @@ fun LoginScreen(
             var hasError = false
 
             // Reset error messages
-            emailError = ""
+            usernameOrEmailError = ""
             passwordError = ""
 
-            // Validate email
-            if (email.isEmpty()) {
-                emailError = "Email is required"
-                hasError = true
-            } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                emailError = "Invalid email address"
+            // Validate username or email
+            if (usernameOrEmail.isEmpty()) {
+                usernameOrEmailError = "Username or Email is required"
                 hasError = true
             }
 
@@ -102,17 +103,24 @@ fun LoginScreen(
             }
 
             if (!hasError) {
-                // Check credentials (this is a placeholder, implement your authentication logic)
-                val userInfo = userViewModel.userInfo.value
-                if (email == userInfo.email && password == userInfo.password) {
+                // Call login function from ViewModel
+                userViewModel.login(usernameOrEmail, password) {
                     onLoginSuccess()
-                } else {
-                    // Show error if credentials don't match
-                    passwordError = "Incorrect email or password"
                 }
             }
         })
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Display error message from ViewModel
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                style = TextStyle(fontSize = 14.sp),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
         OrLogInWith()
         Spacer(modifier = Modifier.height(16.dp))
         SocialLogInButtons()
@@ -154,9 +162,9 @@ fun Freshly(modifier: Modifier = Modifier) {
 
 @Composable
 fun LoginFields(
-    email: String,
-    onEmailChange: (String) -> Unit,
-    emailError: String,
+    usernameOrEmail: String,
+    onUsernameOrEmailChange: (String) -> Unit,
+    usernameOrEmailError: String,
     password: String,
     onPasswordChange: (String) -> Unit,
     passwordError: String,
@@ -168,16 +176,16 @@ fun LoginFields(
             .fillMaxWidth()
             .requiredWidth(326.dp)
     ) {
-        // Email Field
+        // Username or Email Field
         Text(
-            text = "Email",
+            text = "Username or Email",
             color = Color(0xff141414),
             style = TextStyle(fontSize = 14.sp),
             modifier = Modifier.fillMaxWidth()
         )
         BasicTextField(
-            value = email,
-            onValueChange = onEmailChange,
+            value = usernameOrEmail,
+            onValueChange = onUsernameOrEmailChange,
             textStyle = TextStyle(color = Color(0xff141414)),
             modifier = Modifier
                 .fillMaxWidth()
@@ -185,16 +193,16 @@ fun LoginFields(
                 .border(
                     BorderStroke(
                         1.dp,
-                        if (emailError.isEmpty()) Color(0xff141414) else Color.Red
+                        if (usernameOrEmailError.isEmpty()) Color(0xff141414) else Color.Red
                     ),
                     RoundedCornerShape(8.dp)
                 )
                 .background(Color.White)
                 .padding(horizontal = 16.dp, vertical = 10.dp)
         )
-        if (emailError.isNotEmpty()) {
+        if (usernameOrEmailError.isNotEmpty()) {
             Text(
-                text = emailError,
+                text = usernameOrEmailError,
                 color = Color.Red,
                 style = TextStyle(fontSize = 12.sp),
                 modifier = Modifier.padding(start = 4.dp)

@@ -15,14 +15,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
+        vectorDrawables.useSupportLibrary = true
     }
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debugg" // The final package name will be "com.example.freshly.debug"
+            applicationIdSuffix = ".debug"
         }
         release {
             isMinifyEnabled = false
@@ -33,44 +31,32 @@ android {
         }
     }
 
-    // Enable Jetpack Compose
-    buildFeatures {
-        compose = true
-    }
+    buildFeatures.compose = true
+    composeOptions.kotlinCompilerExtensionVersion = "1.5.1"
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1" // Specify the correct compiler version
-    }
-
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
+    packaging.resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 dependencies {
-
+    // Existing dependencies
     implementation(libs.androidx.material.icons.extended)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.coil.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.runtime.livedata)
-    implementation(libs.androidx.ui) // Corrected alias for ui
-    implementation(libs.androidx.material3) // Corrected material3 reference
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.material3)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose) // Required for Jetpack Compose
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
@@ -78,6 +64,16 @@ dependencies {
     implementation(libs.play.services.maps)
     implementation(libs.accompanist.pager)
 
+        implementation(libs.androidx.security.crypto.ktx)
+
+
+    // New Dependencies
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.gson)
+    implementation(libs.androidx.security.crypto.ktx)
 
     // Test dependencies
     testImplementation(libs.junit)
@@ -90,4 +86,3 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
-
