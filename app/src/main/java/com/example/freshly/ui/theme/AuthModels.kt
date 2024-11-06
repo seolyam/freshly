@@ -9,13 +9,14 @@ data class RegisterRequest(
 )
 
 data class LoginRequest(
-    val usernameOrEmail: String,
+    val username: String,
     val password: String
 )
 
 // Response Models
 data class RegisterResponse(
-    val message: String?
+    val message: String?,
+    val token: String?
 )
 
 data class LoginResponse(

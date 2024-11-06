@@ -1,7 +1,7 @@
-// SignupScreen.kt
+// SignUpScreen.kt
 package com.example.freshly.ui.theme
 
-import androidx.compose.foundation.BorderStroke
+// Import TextFieldWithError from TextFieldWithError.kt
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,7 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -72,6 +71,8 @@ fun SignUpScreen(
     ) {
         FreshlySignUp()
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Sign Up Fields
         SignUpFields(
             username = username,
             onUsernameChange = {
@@ -98,7 +99,10 @@ fun SignUpScreen(
             },
             confirmPasswordError = confirmPasswordError
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Sign Up Button
         SignUpButton(onClick = {
             var hasError = false
 
@@ -143,9 +147,11 @@ fun SignUpScreen(
 
             if (!hasError) {
                 // Call register function from ViewModel
-                userViewModel.register(username, email, password) {
-                    onSignUpSuccess()
-                }
+                userViewModel.register(
+                    username, email, password,
+                    onSuccess = { onSignUpSuccess() },
+                    onError = { message -> usernameError = message }
+                )
             }
         })
 
@@ -154,7 +160,7 @@ fun SignUpScreen(
             Text(
                 text = errorMessage,
                 color = Color.Red,
-                style = TextStyle(fontSize = 14.sp),
+                fontSize = 14.sp,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
@@ -222,126 +228,35 @@ fun SignUpFields(
             .requiredWidth(326.dp)
     ) {
         // Username Field
-        Text(
-            text = "Username",
-            color = Color(0xff141414),
-            style = TextStyle(fontSize = 14.sp),
-            modifier = Modifier.fillMaxWidth()
-        )
-        BasicTextField(
+        TextFieldWithError(
+            label = "Username",
             value = username,
             onValueChange = onUsernameChange,
-            textStyle = TextStyle(color = Color(0xff141414)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .border(
-                    BorderStroke(1.dp, if (usernameError.isEmpty()) Color(0xff141414) else Color.Red),
-                    RoundedCornerShape(8.dp)
-                )
-                .background(Color.White)
-                .padding(horizontal = 16.dp, vertical = 10.dp)
+            error = usernameError
         )
-        if (usernameError.isNotEmpty()) {
-            Text(
-                text = usernameError,
-                color = Color.Red,
-                style = TextStyle(fontSize = 12.sp),
-                modifier = Modifier.padding(start = 4.dp)
-            )
-        }
-
         // Email Field
-        Text(
-            text = "Email",
-            color = Color(0xff141414),
-            style = TextStyle(fontSize = 14.sp),
-            modifier = Modifier.fillMaxWidth()
-        )
-        BasicTextField(
+        TextFieldWithError(
+            label = "Email",
             value = email,
             onValueChange = onEmailChange,
-            textStyle = TextStyle(color = Color(0xff141414)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .border(
-                    BorderStroke(1.dp, if (emailError.isEmpty()) Color(0xff141414) else Color.Red),
-                    RoundedCornerShape(8.dp)
-                )
-                .background(Color.White)
-                .padding(horizontal = 16.dp, vertical = 10.dp)
+            error = emailError
         )
-        if (emailError.isNotEmpty()) {
-            Text(
-                text = emailError,
-                color = Color.Red,
-                style = TextStyle(fontSize = 12.sp),
-                modifier = Modifier.padding(start = 4.dp)
-            )
-        }
-
         // Password Field
-        Text(
-            text = "Password",
-            color = Color(0xff141414),
-            style = TextStyle(fontSize = 14.sp),
-            modifier = Modifier.fillMaxWidth()
-        )
-        BasicTextField(
+        TextFieldWithError(
+            label = "Password",
             value = password,
             onValueChange = onPasswordChange,
             visualTransformation = PasswordVisualTransformation(),
-            textStyle = TextStyle(color = Color(0xff141414)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .border(
-                    BorderStroke(1.dp, if (passwordError.isEmpty()) Color(0xff141414) else Color.Red),
-                    RoundedCornerShape(8.dp)
-                )
-                .background(Color.White)
-                .padding(horizontal = 16.dp, vertical = 10.dp)
+            error = passwordError
         )
-        if (passwordError.isNotEmpty()) {
-            Text(
-                text = passwordError,
-                color = Color.Red,
-                style = TextStyle(fontSize = 12.sp),
-                modifier = Modifier.padding(start = 4.dp)
-            )
-        }
-
         // Confirm Password Field
-        Text(
-            text = "Confirm Password",
-            color = Color(0xff141414),
-            style = TextStyle(fontSize = 14.sp),
-            modifier = Modifier.fillMaxWidth()
-        )
-        BasicTextField(
+        TextFieldWithError(
+            label = "Confirm Password",
             value = confirmPassword,
             onValueChange = onConfirmPasswordChange,
             visualTransformation = PasswordVisualTransformation(),
-            textStyle = TextStyle(color = Color(0xff141414)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .border(
-                    BorderStroke(1.dp, if (confirmPasswordError.isEmpty()) Color(0xff141414) else Color.Red),
-                    RoundedCornerShape(8.dp)
-                )
-                .background(Color.White)
-                .padding(horizontal = 16.dp, vertical = 10.dp)
+            error = confirmPasswordError
         )
-        if (confirmPasswordError.isNotEmpty()) {
-            Text(
-                text = confirmPasswordError,
-                color = Color.Red,
-                style = TextStyle(fontSize = 12.sp),
-                modifier = Modifier.padding(start = 4.dp)
-            )
-        }
     }
 }
 
@@ -360,10 +275,8 @@ fun SignUpButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
         Text(
             text = "Sign Up",
             color = Color.White,
-            style = TextStyle(
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -373,7 +286,7 @@ fun OrSignUpWith(modifier: Modifier = Modifier) {
     Text(
         text = "or Sign Up with",
         color = Color(0xff141414),
-        style = TextStyle(fontSize = 14.sp),
+        fontSize = 14.sp,
         modifier = modifier
     )
 }
@@ -408,9 +321,11 @@ fun SocialSignUpButton(
             .fillMaxWidth()
             .height(48.dp)
             .clip(RoundedCornerShape(8.dp))
+            .background(Color.White)
             .border(
-                BorderStroke(1.dp, Color(0xff141414)),
-                RoundedCornerShape(8.dp)
+                width = 1.dp,
+                color = Color(0xff141414),
+                shape = RoundedCornerShape(8.dp)
             )
             .clickable { /* Handle social sign up */ }
             .padding(horizontal = 16.dp)
@@ -424,7 +339,7 @@ fun SocialSignUpButton(
         Text(
             text = buttonText,
             color = Color(0xff141414),
-            style = TextStyle(fontSize = 14.sp)
+            fontSize = 14.sp
         )
     }
 }

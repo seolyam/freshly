@@ -15,7 +15,7 @@ interface ApiService {
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
     @GET("profile")
-    suspend fun getProfile(@Header("Authorization") token: String): Response<UserProfileResponse>
+    suspend fun getProfile(@Header("Authorization") authorization: String): Response<UserProfileResponse>
 
     @POST("profile")
     suspend fun updateProfile(

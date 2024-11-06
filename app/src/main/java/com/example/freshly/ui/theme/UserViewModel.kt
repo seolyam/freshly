@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import parseErrorResponse
 
 data class UserInfo(
     var username: String = "",
@@ -26,22 +27,31 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> get() = _errorMessage
 
-    // Register Function
-    fun register(username: String, email: String, password: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun register(
+        username: String,
+        email: String,
+        password: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
             try {
-                val request = RegisterRequest(username, email, password)
-                val response = apiService.register(request)
+                val response = apiService.register(RegisterRequest(username, email, password))
                 if (response.isSuccessful) {
                     val responseBody = response.body()
-                    if (responseBody != null && responseBody.message != null) {
-                        // Successfully registered, proceed to login or set token
-                        onSuccess()
-                    } else {
-                        onError("Registration failed: No message in response")
-                    }
+                    responseBody?.let {
+                        it.token?.let { token ->
+                            // Save the token
+                            tokenManager.saveToken(token)
+                            // Update user info
+                            _userInfo.value = _userInfo.value.copy(username = username, token = token)
+                            _errorMessage.value = ""
+                            onSuccess()
+                        } ?: onError("Registration failed: No token received")
+                    } ?: onError("Registration failed: No response body")
                 } else {
-                    onError("Registration failed: ${response.message()}")
+                    val errorMessage = parseErrorResponse(response)
+                    onError("Registration failed: $errorMessage")
                 }
             } catch (e: Exception) {
                 onError("An error occurred: ${e.message}")
@@ -50,27 +60,25 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
     }
 
     // Login Function
-    fun login(usernameOrEmail: String, password: String, onSuccess: () -> Unit) {
+    fun login(username: String, password: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
-                val request = LoginRequest(usernameOrEmail, password)
-                val response = apiService.login(request)
+                val response = apiService.login(LoginRequest(username, password))
                 if (response.isSuccessful) {
-                    val responseBody = response.body()
-                    if (responseBody != null && responseBody.token != null) {
-                        val token = responseBody.token
-                        tokenManager.saveToken(token)
-                        _userInfo.value = _userInfo.value.copy(
-                            username = usernameOrEmail,
-                            token = token
-                        )
-                        _errorMessage.value = ""
-                        onSuccess()
-                    } else {
-                        _errorMessage.value = responseBody?.message ?: "Login failed"
+                    response.body()?.let { responseBody ->
+                        responseBody.token?.let { token ->
+                            tokenManager.saveToken(token)
+                            _userInfo.value = _userInfo.value.copy(username = username, token = token)
+                            _errorMessage.value = ""
+                            onSuccess()
+                        } ?: run {
+                            _errorMessage.value = responseBody.message ?: "Login failed"
+                        }
                     }
                 } else {
-                    _errorMessage.value = "Login failed: ${response.message()}"
+                    // Handle error response
+                    val errorBody = response.errorBody()?.string()
+                    _errorMessage.value = "Login failed: $errorBody"
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "An error occurred: ${e.message}"

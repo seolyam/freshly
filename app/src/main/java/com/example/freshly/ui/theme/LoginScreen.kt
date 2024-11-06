@@ -1,7 +1,7 @@
 // LoginScreen.kt
 package com.example.freshly.ui.theme
 
-import androidx.compose.foundation.BorderStroke
+// Import TextFieldWithError from TextFieldWithError.kt
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,7 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -47,15 +46,12 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // State variables for user inputs
-    var usernameOrEmail by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
-    // State variables for error messages
-    var usernameOrEmailError by remember { mutableStateOf("") }
+    var usernameError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
 
-    // Observe error message from ViewModel
+    // Observing error messages from the ViewModel
     val errorMessage by userViewModel.errorMessage.collectAsState()
 
     Column(
@@ -68,31 +64,36 @@ fun LoginScreen(
     ) {
         Freshly()
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Login Fields
         LoginFields(
-            usernameOrEmail = usernameOrEmail,
-            onUsernameOrEmailChange = {
-                usernameOrEmail = it
-                usernameOrEmailError = "" // Clear error when user starts typing
+            username = username,
+            onUsernameChange = {
+                username = it
+                usernameError = "" // Clear error when typing
             },
-            usernameOrEmailError = usernameOrEmailError,
+            usernameError = usernameError,
             password = password,
             onPasswordChange = {
                 password = it
-                passwordError = "" // Clear error when user starts typing
+                passwordError = "" // Clear error when typing
             },
             passwordError = passwordError
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Login Button
         LoginButton(onClick = {
             var hasError = false
 
             // Reset error messages
-            usernameOrEmailError = ""
+            usernameError = ""
             passwordError = ""
 
-            // Validate username or email
-            if (usernameOrEmail.isEmpty()) {
-                usernameOrEmailError = "Username or Email is required"
+            // Validate username
+            if (username.isEmpty()) {
+                usernameError = "Username is required"
                 hasError = true
             }
 
@@ -104,11 +105,12 @@ fun LoginScreen(
 
             if (!hasError) {
                 // Call login function from ViewModel
-                userViewModel.login(usernameOrEmail, password) {
+                userViewModel.login(username, password) {
                     onLoginSuccess()
                 }
             }
         })
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Display error message from ViewModel
@@ -116,11 +118,12 @@ fun LoginScreen(
             Text(
                 text = errorMessage,
                 color = Color.Red,
-                style = TextStyle(fontSize = 14.sp),
+                fontSize = 14.sp,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
         OrLogInWith()
         Spacer(modifier = Modifier.height(16.dp))
         SocialLogInButtons()
@@ -162,9 +165,9 @@ fun Freshly(modifier: Modifier = Modifier) {
 
 @Composable
 fun LoginFields(
-    usernameOrEmail: String,
-    onUsernameOrEmailChange: (String) -> Unit,
-    usernameOrEmailError: String,
+    username: String,
+    onUsernameChange: (String) -> Unit,
+    usernameError: String,
     password: String,
     onPasswordChange: (String) -> Unit,
     passwordError: String,
@@ -176,72 +179,22 @@ fun LoginFields(
             .fillMaxWidth()
             .requiredWidth(326.dp)
     ) {
-        // Username or Email Field
-        Text(
-            text = "Username or Email",
-            color = Color(0xff141414),
-            style = TextStyle(fontSize = 14.sp),
-            modifier = Modifier.fillMaxWidth()
+        // Username Field
+        TextFieldWithError(
+            label = "Username",
+            value = username,
+            onValueChange = onUsernameChange,
+            error = usernameError
         )
-        BasicTextField(
-            value = usernameOrEmail,
-            onValueChange = onUsernameOrEmailChange,
-            textStyle = TextStyle(color = Color(0xff141414)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .border(
-                    BorderStroke(
-                        1.dp,
-                        if (usernameOrEmailError.isEmpty()) Color(0xff141414) else Color.Red
-                    ),
-                    RoundedCornerShape(8.dp)
-                )
-                .background(Color.White)
-                .padding(horizontal = 16.dp, vertical = 10.dp)
-        )
-        if (usernameOrEmailError.isNotEmpty()) {
-            Text(
-                text = usernameOrEmailError,
-                color = Color.Red,
-                style = TextStyle(fontSize = 12.sp),
-                modifier = Modifier.padding(start = 4.dp)
-            )
-        }
 
         // Password Field
-        Text(
-            text = "Password",
-            color = Color(0xff141414),
-            style = TextStyle(fontSize = 14.sp),
-            modifier = Modifier.fillMaxWidth()
-        )
-        BasicTextField(
+        TextFieldWithError(
+            label = "Password",
             value = password,
             onValueChange = onPasswordChange,
             visualTransformation = PasswordVisualTransformation(),
-            textStyle = TextStyle(color = Color(0xff141414)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .border(
-                    BorderStroke(
-                        1.dp,
-                        if (passwordError.isEmpty()) Color(0xff141414) else Color.Red
-                    ),
-                    RoundedCornerShape(8.dp)
-                )
-                .background(Color.White)
-                .padding(horizontal = 16.dp, vertical = 10.dp)
+            error = passwordError
         )
-        if (passwordError.isNotEmpty()) {
-            Text(
-                text = passwordError,
-                color = Color.Red,
-                style = TextStyle(fontSize = 12.sp),
-                modifier = Modifier.padding(start = 4.dp)
-            )
-        }
     }
 }
 
@@ -260,10 +213,8 @@ fun LoginButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
         Text(
             text = "Log In",
             color = Color.White,
-            style = TextStyle(
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -273,9 +224,7 @@ fun OrLogInWith(modifier: Modifier = Modifier) {
     Text(
         text = "or Log in with",
         color = Color(0xff141414),
-        style = TextStyle(
-            fontSize = 14.sp
-        ),
+        fontSize = 14.sp,
         modifier = modifier
     )
 }
@@ -310,9 +259,11 @@ fun SocialLogInButton(
             .fillMaxWidth()
             .height(48.dp)
             .clip(RoundedCornerShape(8.dp))
+            .background(Color.White)
             .border(
-                BorderStroke(1.dp, Color(0xff141414)),
-                RoundedCornerShape(8.dp)
+                width = 1.dp,
+                color = Color(0xff141414),
+                shape = RoundedCornerShape(8.dp)
             )
             .clickable { /* Handle social login */ }
             .padding(horizontal = 16.dp)
@@ -326,7 +277,7 @@ fun SocialLogInButton(
         Text(
             text = buttonText,
             color = Color(0xff141414),
-            style = TextStyle(fontSize = 14.sp)
+            fontSize = 14.sp
         )
     }
 }
