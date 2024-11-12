@@ -30,4 +30,9 @@ class TokenManager(context: Context) {
     fun clearToken() {
         prefs.edit().remove(tokenKey).apply()
     }
+
+    fun getBearerToken(): String? {
+        return getToken()?.let { "Bearer $it" }
+    }
 }
+

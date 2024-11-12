@@ -1,24 +1,15 @@
 package com.example.freshly.ui.theme
 
+import ApiService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import parseErrorResponse
 
-data class UserInfo(
-    var username: String = "",
-    var email: String = "",
-    var token: String = "",
-    var firstName: String = "",
-    var middleInitial: String = "",
-    var lastName: String = "",
-    var birthdate: String = "",
-    var address: String = ""
-)
 
 class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
+
     private val apiService: ApiService = ApiClient.retrofit.create(ApiService::class.java)
 
     private val _userInfo = MutableStateFlow(UserInfo())
@@ -27,8 +18,19 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> get() = _errorMessage
 
+    data class UserInfo(
+        var firstName: String = "",
+        var middleInitial: String = "",
+        var lastName: String = "",
+        var email: String = "",
+        var birthdate: String = "",
+        var address: String = "",
+        var token: String = ""
+    )
+
     fun register(
-        username: String,
+        firstName: String,
+        lastName: String,
         email: String,
         password: String,
         onSuccess: () -> Unit,
@@ -36,22 +38,17 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val response = apiService.register(RegisterRequest(username, email, password))
+                val response = apiService.register(
+                    RegisterRequest(first_name = firstName, last_name = lastName, email = email, password = password)
+                )
                 if (response.isSuccessful) {
-                    val responseBody = response.body()
-                    responseBody?.let {
-                        it.token?.let { token ->
-                            // Save the token
-                            tokenManager.saveToken(token)
-                            // Update user info
-                            _userInfo.value = _userInfo.value.copy(username = username, token = token)
-                            _errorMessage.value = ""
-                            onSuccess()
-                        } ?: onError("Registration failed: No token received")
-                    } ?: onError("Registration failed: No response body")
+                    // After successful registration, perform login
+                    login(email, password) {
+                        onSuccess()
+                    }
                 } else {
-                    val errorMessage = parseErrorResponse(response)
-                    onError("Registration failed: $errorMessage")
+                    val errorBody = response.errorBody()?.string()
+                    onError("Registration failed: $errorBody")
                 }
             } catch (e: Exception) {
                 onError("An error occurred: ${e.message}")
@@ -59,24 +56,26 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
         }
     }
 
-    // Login Function
-    fun login(username: String, password: String, onSuccess: () -> Unit) {
+    fun login(email: String, password: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
-                val response = apiService.login(LoginRequest(username, password))
+                val request = LoginRequest(email, password)
+                val response = apiService.login(request)
                 if (response.isSuccessful) {
-                    response.body()?.let { responseBody ->
+                    val responseBody = response.body()
+                    if (responseBody?.success == true) {
                         responseBody.token?.let { token ->
                             tokenManager.saveToken(token)
-                            _userInfo.value = _userInfo.value.copy(username = username, token = token)
+                            _userInfo.value = _userInfo.value.copy(email = email, token = token)
                             _errorMessage.value = ""
                             onSuccess()
                         } ?: run {
-                            _errorMessage.value = responseBody.message ?: "Login failed"
+                            _errorMessage.value = "Login failed: Token not received"
                         }
+                    } else {
+                        _errorMessage.value = responseBody?.message ?: "Login failed"
                     }
                 } else {
-                    // Handle error response
                     val errorBody = response.errorBody()?.string()
                     _errorMessage.value = "Login failed: $errorBody"
                 }
@@ -86,29 +85,30 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
         }
     }
 
-    // Fetch User Profile
     fun fetchUserProfile(onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             try {
-                val token = tokenManager.getToken()
+                val token = tokenManager.getBearerToken()
                 if (token != null) {
-                    val response = apiService.getProfile("Bearer $token")
+                    val response = apiService.getProfile(token)
                     if (response.isSuccessful) {
                         val profile = response.body()
                         if (profile != null) {
                             _userInfo.value = _userInfo.value.copy(
-                                username = profile.username ?: _userInfo.value.username,
-                                email = profile.email ?: _userInfo.value.email,
                                 firstName = profile.firstName ?: "",
                                 middleInitial = profile.middleInitial ?: "",
                                 lastName = profile.lastName ?: "",
+                                email = profile.email ?: "",
                                 birthdate = profile.birthdate ?: "",
                                 address = profile.address ?: ""
                             )
                             onSuccess()
+                        } else {
+                            _errorMessage.value = "Failed to parse profile data"
                         }
                     } else {
-                        _errorMessage.value = "Failed to fetch profile"
+                        val errorBody = response.errorBody()?.string()
+                        _errorMessage.value = "Failed to fetch profile: $errorBody"
                     }
                 } else {
                     _errorMessage.value = "User not authenticated"
@@ -119,7 +119,6 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
         }
     }
 
-    // Update User Profile
     fun updateUserProfile(
         firstName: String,
         middleInitial: String,
@@ -132,7 +131,7 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val token = tokenManager.getToken()
+                val token = tokenManager.getBearerToken()
                 if (token != null) {
                     val request = UserProfileRequest(
                         firstName = firstName,
@@ -142,7 +141,7 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
                         address = address,
                         password = password
                     )
-                    val response = apiService.updateProfile("Bearer $token", request)
+                    val response = apiService.updateProfile(token, request)
                     if (response.isSuccessful) {
                         val profile = response.body()
                         if (profile != null) {
@@ -154,9 +153,12 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
                                 address = profile.address ?: ""
                             )
                             onSuccess()
+                        } else {
+                            onError("Failed to parse updated profile data")
                         }
                     } else {
-                        onError("Failed to update profile")
+                        val errorBody = response.errorBody()?.string()
+                        onError("Failed to update profile: $errorBody")
                     }
                 } else {
                     onError("User not authenticated")
@@ -167,7 +169,6 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
         }
     }
 
-    // Logout Function
     fun logout() {
         tokenManager.clearToken()
         _userInfo.value = UserInfo()

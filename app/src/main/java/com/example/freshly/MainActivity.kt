@@ -24,7 +24,6 @@ import com.example.freshly.ui.theme.CheckoutPage
 import com.example.freshly.ui.theme.EditProfileScreen
 import com.example.freshly.ui.theme.FreshlyTheme
 import com.example.freshly.ui.theme.HomePageScreen
-import com.example.freshly.ui.theme.InfoPage
 import com.example.freshly.ui.theme.LoginScreen
 import com.example.freshly.ui.theme.OrderConfirmation
 import com.example.freshly.ui.theme.ProductPageScreen
@@ -94,14 +93,7 @@ fun NavigationComponent(
         composable("signup") {
             SignUpScreen(
                 userViewModel = userViewModel,
-                onSignUpSuccess = { navController.navigate("info") }
-            )
-        }
-        composable("info") {
-            InfoPage(
-                userViewModel = userViewModel,
-                onNavigateBack = { navController.popBackStack() },
-                onSignUpComplete = { navController.navigate("home") }
+                onSignUpSuccess = { navController.navigate("home") }
             )
         }
         composable("home") {

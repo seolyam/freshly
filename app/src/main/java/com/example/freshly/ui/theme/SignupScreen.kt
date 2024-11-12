@@ -47,13 +47,15 @@ fun SignUpScreen(
     modifier: Modifier = Modifier
 ) {
     // State variables for user inputs
-    var username by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
     // State variables for error messages
-    var usernameError by remember { mutableStateOf("") }
+    var firstNameError by remember { mutableStateOf("") }
+    var lastNameError by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
     var confirmPasswordError by remember { mutableStateOf("") }
@@ -74,12 +76,18 @@ fun SignUpScreen(
 
         // Sign Up Fields
         SignUpFields(
-            username = username,
-            onUsernameChange = {
-                username = it
-                usernameError = "" // Clear error when user starts typing
+            firstName = firstName,
+            onFirstNameChange = {
+                firstName = it
+                firstNameError = "" // Clear error when user starts typing
             },
-            usernameError = usernameError,
+            firstNameError = firstNameError,
+            lastName = lastName,
+            onLastNameChange = {
+                lastName = it
+                lastNameError = "" // Clear error when user starts typing
+            },
+            lastNameError = lastNameError,
             email = email,
             onEmailChange = {
                 email = it
@@ -100,6 +108,7 @@ fun SignUpScreen(
             confirmPasswordError = confirmPasswordError
         )
 
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Sign Up Button
@@ -107,14 +116,21 @@ fun SignUpScreen(
             var hasError = false
 
             // Reset error messages
-            usernameError = ""
+            firstNameError = ""
+            lastNameError = ""
             emailError = ""
             passwordError = ""
             confirmPasswordError = ""
 
-            // Validate username
-            if (username.isEmpty()) {
-                usernameError = "Username is required"
+            // Validate first name
+            if (firstName.isEmpty()) {
+                firstNameError = "First name is required"
+                hasError = true
+            }
+
+            // Validate last name
+            if (lastName.isEmpty()) {
+                lastNameError = "Last name is required"
                 hasError = true
             }
 
@@ -148,14 +164,15 @@ fun SignUpScreen(
             if (!hasError) {
                 // Call register function from ViewModel
                 userViewModel.register(
-                    username, email, password,
+                    firstName, lastName, email, password,
                     onSuccess = { onSignUpSuccess() },
-                    onError = { message -> usernameError = message }
+                    onError = { message -> emailError = message }
                 )
             }
         })
 
         // Display error message from ViewModel
+
         if (errorMessage.isNotEmpty()) {
             Text(
                 text = errorMessage,
@@ -207,9 +224,12 @@ fun FreshlySignUp(modifier: Modifier = Modifier) {
 
 @Composable
 fun SignUpFields(
-    username: String,
-    onUsernameChange: (String) -> Unit,
-    usernameError: String,
+    firstName: String,
+    onFirstNameChange: (String) -> Unit,
+    firstNameError: String,
+    lastName: String,
+    onLastNameChange: (String) -> Unit,
+    lastNameError: String,
     email: String,
     onEmailChange: (String) -> Unit,
     emailError: String,
@@ -227,12 +247,19 @@ fun SignUpFields(
             .fillMaxWidth()
             .requiredWidth(326.dp)
     ) {
-        // Username Field
+        // First Name Field
         TextFieldWithError(
-            label = "Username",
-            value = username,
-            onValueChange = onUsernameChange,
-            error = usernameError
+            label = "First Name",
+            value = firstName,
+            onValueChange = onFirstNameChange,
+            error = firstNameError
+        )
+        // Last Name Field
+        TextFieldWithError(
+            label = "Last Name",
+            value = lastName,
+            onValueChange = onLastNameChange,
+            error = lastNameError
         )
         // Email Field
         TextFieldWithError(

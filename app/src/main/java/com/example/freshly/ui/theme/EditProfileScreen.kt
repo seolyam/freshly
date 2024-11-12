@@ -457,11 +457,12 @@ fun CustomDialog(
 
 @Composable
 fun EditableField(
+    modifier: Modifier = Modifier,
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    isPassword: Boolean = false,
-    modifier: Modifier = Modifier
+    isPassword: Boolean = false
+
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     Column(
