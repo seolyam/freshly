@@ -1,14 +1,11 @@
 // InfoPage.kt
-package com.example.freshly.ui.theme
+package layout
 
+import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,16 +15,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,7 +33,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freshly.R
+import com.example.freshly.ui.theme.UserViewModel
 import java.util.Calendar
+import kotlin.text.isEmpty
 
 @Composable
 fun InfoPage(
@@ -51,12 +43,16 @@ fun InfoPage(
     onNavigateBack: () -> Unit,
     onSignUpComplete: () -> Unit
 ) {
+    // Observe the userInfo from UserViewModel
+    val userInfo by userViewModel.userInfo.collectAsState()
+
     // State variables for user inputs
     var firstName by remember { mutableStateOf("") }
     var middleInitial by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var birthdate by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    val email = userInfo.email // Get email from userInfo
 
     val context = LocalContext.current
 
@@ -67,7 +63,7 @@ fun InfoPage(
     val day = calendar.get(Calendar.DAY_OF_MONTH)
 
     val datePickerDialog = remember {
-        android.app.DatePickerDialog(
+        DatePickerDialog(
             context,
             { _, selectedYear, selectedMonth, selectedDay ->
                 birthdate = "${selectedMonth + 1}/$selectedDay/$selectedYear"
@@ -251,6 +247,7 @@ fun InfoPage(
                     firstName = firstName,
                     middleInitial = middleInitial,
                     lastName = lastName,
+                    email = email, // Pass email here
                     birthdate = birthdate,
                     address = address,
                     onSuccess = {
@@ -278,6 +275,7 @@ fun InfoPage(
         }
     }
 }
+
 @Composable
 fun SignupToFreshly(modifier: Modifier = Modifier) {
     Text(
@@ -324,7 +322,6 @@ fun CustomBasicTextField(
     placeholder: String,
     readOnly: Boolean = false,
     trailingIcon: @Composable (() -> Unit)? = null
-
 ) {
     val primaryColor = Color(0xFF201E1E)
     val placeholderColor = Color(0xFFA8A8A8)

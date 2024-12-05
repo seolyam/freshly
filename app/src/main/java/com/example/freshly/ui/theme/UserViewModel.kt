@@ -1,12 +1,17 @@
+// UserViewModel.kt
 package com.example.freshly.ui.theme
 
-import ApiService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+// Import the request and response models
+import com.example.freshly.ui.theme.RegisterRequest
+import com.example.freshly.ui.theme.LoginRequest
+import com.example.freshly.ui.theme.RegisterResponse
+import com.example.freshly.ui.theme.LoginResponse
 
 class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
 
@@ -28,6 +33,20 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
         var token: String = ""
     )
 
+    init {
+        // Load the token from TokenManager when the ViewModel is initialized
+        val savedToken = tokenManager.getToken()
+        if (savedToken != null) {
+            _userInfo.value = _userInfo.value.copy(token = savedToken)
+            // Fetch user profile if needed
+            fetchUserProfile()
+        }
+    }
+
+    fun getToken(): String? {
+        return tokenManager.getToken()
+    }
+
     fun register(
         firstName: String,
         lastName: String,
@@ -38,13 +57,22 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val response = apiService.register(
-                    RegisterRequest(first_name = firstName, last_name = lastName, email = email, password = password)
+                val request = RegisterRequest(
+                    first_name = firstName,
+                    last_name = lastName,
+                    email = email,
+                    password = password
                 )
+                val response = apiService.register(request)
                 if (response.isSuccessful) {
-                    // After successful registration, perform login
-                    login(email, password) {
-                        onSuccess()
+                    val responseBody = response.body()
+                    if (responseBody?.success == true) {
+                        // After successful registration, perform login
+                        login(email, password) {
+                            onSuccess()
+                        }
+                    } else {
+                        onError("Registration failed: ${responseBody?.message}")
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
@@ -68,6 +96,8 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
                             tokenManager.saveToken(token)
                             _userInfo.value = _userInfo.value.copy(email = email, token = token)
                             _errorMessage.value = ""
+                            // Fetch user profile after login
+                            fetchUserProfile()
                             onSuccess()
                         } ?: run {
                             _errorMessage.value = "Login failed: Token not received"
@@ -123,6 +153,7 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
         firstName: String,
         middleInitial: String,
         lastName: String,
+        email: String, // Include email parameter
         birthdate: String,
         address: String,
         password: String? = null,
@@ -137,6 +168,7 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
                         firstName = firstName,
                         middleInitial = middleInitial,
                         lastName = lastName,
+                        email = email, // Include email
                         birthdate = birthdate,
                         address = address,
                         password = password
@@ -149,6 +181,7 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
                                 firstName = profile.firstName ?: "",
                                 middleInitial = profile.middleInitial ?: "",
                                 lastName = profile.lastName ?: "",
+                                email = profile.email ?: "",
                                 birthdate = profile.birthdate ?: "",
                                 address = profile.address ?: ""
                             )

@@ -1,18 +1,24 @@
-import com.example.freshly.ui.theme.LoginRequest
-import com.example.freshly.ui.theme.LoginResponse
-import com.example.freshly.ui.theme.RegisterRequest
-import com.example.freshly.ui.theme.RegisterResponse
-import com.example.freshly.ui.theme.UserProfileRequest
-import com.example.freshly.ui.theme.UserProfileResponse
+// ApiService.kt
+package com.example.freshly.ui.theme
+import com.example.freshly.models.ProductResponse
+
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.PUT
-
+// Import the request and response models
+import com.example.freshly.ui.theme.RegisterRequest
+import com.example.freshly.ui.theme.LoginRequest
+import com.example.freshly.ui.theme.RegisterResponse
+import com.example.freshly.ui.theme.LoginResponse
+import com.example.freshly.ui.theme.UserProfileRequest // Import UserProfileRequest
+import com.example.freshly.ui.theme.UserProfileResponse // Import UserProfileResponse
 
 interface ApiService {
+    @GET("/products")
+    suspend fun getProducts(): Response<ProductResponse>
+
     @POST("/register")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
@@ -22,7 +28,7 @@ interface ApiService {
     @GET("/profile")
     suspend fun getProfile(@Header("Authorization") token: String): Response<UserProfileResponse>
 
-    @PUT("/profile")
+    @POST("/profile")
     suspend fun updateProfile(
         @Header("Authorization") token: String,
         @Body request: UserProfileRequest

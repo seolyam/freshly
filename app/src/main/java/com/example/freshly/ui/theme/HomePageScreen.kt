@@ -1,6 +1,6 @@
-package com.example.freshly.ui.theme
+// HomePageScreen.kt
+package com.example.freshly.ui
 
-import Product
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,22 +26,26 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
+import coil.compose.AsyncImage
+import com.example.freshly.models.Product
+import com.example.freshly.viewmodel.ProductViewModel
+import com.google.accompanist.pager.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomePageScreen(
     modifier: Modifier = Modifier,
     onCartClick: () -> Unit,
     onProductClick: (Product) -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    productViewModel: ProductViewModel = remember { ProductViewModel() }
 ) {
+    val products by productViewModel.products.collectAsState()
+    val errorMessage by productViewModel.errorMessage.collectAsState()
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -59,8 +63,18 @@ fun HomePageScreen(
             ProductCarouselSection()
 
             Spacer(modifier = Modifier.height(16.dp))
+
             // Display products in a grid, scrollable
-            ProductCategoriesSection(onProductClick)
+            if (errorMessage != null) {
+                // Show error message
+                Text(
+                    text = errorMessage ?: "Unknown error",
+                    color = Color.Red,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                ProductCategoriesSection(products = products, onProductClick = onProductClick)
+            }
         }
 
         BottomNavigationBar(
@@ -150,7 +164,7 @@ fun buildAnnotatedString(builder: AnnotatedString.Builder.() -> Unit): Annotated
     }
 }
 
-fun AnnotatedString.Builder.appendWithStyle(text: String, color: Color, size: TextUnit) {
+fun AnnotatedString.Builder.appendWithStyle(text: String, color: Color, size: androidx.compose.ui.unit.TextUnit) {
     withStyle(
         style = SpanStyle(
             color = color,
@@ -169,7 +183,6 @@ fun SearchSection(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .height(48.dp)
-            .padding(horizontal = 16.dp)
             .background(Color.White, RoundedCornerShape(8.dp))
             .border(1.dp, Color(0xFF141414), RoundedCornerShape(8.dp))
             .clip(RoundedCornerShape(8.dp))
@@ -218,16 +231,10 @@ fun SearchSection(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ProductCategoriesSection(onProductClick: (Product) -> Unit) {
-    val products = listOf(
-        Product("Carrots", "product_image_url", "Fresh carrots grown locally.", "Carrots may contain allergens for those allergic to pollen.", 20.0),
-        Product("Cucumbers", "product_image_url", "Organic cucumbers from the farm.", "May contain allergens related to latex.", 15.5),
-        Product("Lettuce", "product_image_url", "Crisp lettuce with no preservatives.", "Lettuce has minimal allergens, mostly found in latex-sensitive individuals.", 10.0),
-        Product("Pepper", "product_image_url", "Spicy peppers, a must-have for heat lovers.", "Pepper allergens are rare, but can cross-react with latex.", 12.75),
-        Product("Tomatoes", "product_image_url", "Juicy tomatoes, perfect for sauces and salads.", "Tomato contains a lipid transfer protein (LTP) which may cause allergies.", 18.0),
-        Product("Mushrooms", "product_image_url", "Fresh mushrooms rich in nutrients.", "Mushrooms can cause allergic reactions in sensitive individuals.", 25.0)
-    )
-
+fun ProductCategoriesSection(
+    products: List<Product>,
+    onProductClick: (Product) -> Unit
+) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Canvas(modifier = Modifier.size(8.dp)) {
@@ -275,21 +282,25 @@ fun ProductItem(
                 onProductClick(product)
             }
     ) {
-        // Use actual image loading here, e.g., with Coil
-        Box(
+        // Use Coil to load images
+        AsyncImage(
+            model = product.imageUrl,
+            contentDescription = product.name,
             modifier = Modifier
                 .size(150.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(Color.LightGray),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = product.name, color = Color.White, fontSize = 16.sp)
-        }
+                .background(Color.LightGray)
+        )
         Text(
             text = product.name,
             color = Color(0xFF201E1E),
             fontSize = 14.sp,
             modifier = Modifier.padding(top = 8.dp)
+        )
+        Text(
+            text = "$${product.price}",
+            color = Color(0xFF201E1E),
+            fontSize = 14.sp
         )
     }
 }
@@ -336,14 +347,4 @@ fun BottomNavigationBar(
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomePageScreenPreview() {
-    HomePageScreen(
-        onCartClick = { /* Handle cart click */ },
-        onProductClick = { product -> /* Handle product click */ },
-        onProfileClick = { /* Handle profile click */ }
-    )
 }

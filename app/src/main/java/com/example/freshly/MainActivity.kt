@@ -17,13 +17,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.freshly.ui.HomePageScreen
 import com.example.freshly.ui.Phone
 import com.example.freshly.ui.theme.CartScreen
 import com.example.freshly.ui.theme.CartViewModel
 import com.example.freshly.ui.theme.CheckoutPage
 import com.example.freshly.ui.theme.EditProfileScreen
 import com.example.freshly.ui.theme.FreshlyTheme
-import com.example.freshly.ui.theme.HomePageScreen
+import com.example.freshly.ui.HomePageScreen
 import com.example.freshly.ui.theme.LoginScreen
 import com.example.freshly.ui.theme.OrderConfirmation
 import com.example.freshly.ui.theme.ProductPageScreen
@@ -49,9 +50,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             FreshlyTheme {
                 val navController = rememberNavController()
+
+                // Observe userInfo token using collectAsState()
+                val userInfo = userViewModel.userInfo.collectAsState().value
+                val isLoggedIn = userInfo.token.isNotEmpty()
+                val startDestination = if (isLoggedIn) "home" else "phone"
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavigationComponent(
                         navController = navController,
+                        startDestination = startDestination,
                         modifier = Modifier.padding(innerPadding),
                         cartViewModel = cartViewModel,
                         userViewModel = userViewModel
@@ -65,17 +73,14 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun NavigationComponent(
     navController: NavHostController,
+    startDestination: String,
     modifier: Modifier = Modifier,
     cartViewModel: CartViewModel,
     userViewModel: UserViewModel
 ) {
-    // Observe userInfo token using collectAsState()
-    val userInfo = userViewModel.userInfo.collectAsState().value
-    val isLoggedIn = userInfo.token.isNotEmpty()
-
     NavHost(
         navController = navController,
-        startDestination = if (isLoggedIn) "home" else "phone",
+        startDestination = startDestination,
         modifier = modifier
     ) {
         composable("phone") {
@@ -87,13 +92,21 @@ fun NavigationComponent(
         composable("login") {
             LoginScreen(
                 userViewModel = userViewModel,
-                onLoginSuccess = { navController.navigate("home") }
+                onLoginSuccess = {
+                    navController.navigate("home") {
+                        popUpTo("phone") { inclusive = true }
+                    }
+                }
             )
         }
         composable("signup") {
             SignUpScreen(
                 userViewModel = userViewModel,
-                onSignUpSuccess = { navController.navigate("home") }
+                onSignUpSuccess = {
+                    navController.navigate("home") {
+                        popUpTo("phone") { inclusive = true }
+                    }
+                }
             )
         }
         composable("home") {
@@ -162,8 +175,8 @@ fun NavigationComponent(
                 userViewModel = userViewModel,
                 onEditProfile = { navController.navigate("editProfile") },
                 onLogout = {
-                    userViewModel.logout() // Clear token on logout
-                    navController.navigate("login") {
+                    userViewModel.logout()
+                    navController.navigate("phone") {
                         popUpTo("home") { inclusive = true }
                     }
                 }

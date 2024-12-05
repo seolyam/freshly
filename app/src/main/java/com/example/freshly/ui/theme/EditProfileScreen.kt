@@ -4,16 +4,7 @@ package com.example.freshly.ui.theme
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,18 +15,8 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,6 +46,7 @@ fun EditProfileScreen(
     var firstName by remember { mutableStateOf(userInfo.firstName) }
     var middleInitial by remember { mutableStateOf(userInfo.middleInitial) }
     var lastName by remember { mutableStateOf(userInfo.lastName) }
+    var email by remember { mutableStateOf(userInfo.email) } // Added email
     var birthdate by remember { mutableStateOf(userInfo.birthdate) }
     var address by remember { mutableStateOf(userInfo.address) }
     var updatedPassword by remember { mutableStateOf("") }
@@ -95,6 +77,7 @@ fun EditProfileScreen(
     var showConfirmationDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     Column(
         modifier = modifier
@@ -154,7 +137,7 @@ fun EditProfileScreen(
                 // Profile Icon centered
                 Box(
                     modifier = Modifier
-                        .size(100.dp) // Reduced size from 100.dp
+                        .size(100.dp)
                         .align(Alignment.CenterHorizontally)
                         .background(Color(0xFF128819), shape = CircleShape),
                     contentAlignment = Alignment.Center
@@ -163,7 +146,7 @@ fun EditProfileScreen(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = "Profile Image",
                         tint = Color.White,
-                        modifier = Modifier.size(128.dp) // Adjusted icon size
+                        modifier = Modifier.size(128.dp)
                     )
                 }
 
@@ -248,6 +231,14 @@ fun EditProfileScreen(
                     }
                 }
 
+                // Email Field
+                EditableField(
+                    label = "Email",
+                    value = email,
+                    onValueChange = { email = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 // Address
                 EditableField(
                     label = "Address",
@@ -275,7 +266,7 @@ fun EditProfileScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(20.dp), // Fixed height
+                        .height(20.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     if (passwordError.isNotEmpty()) {
@@ -312,73 +303,76 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-    }
 
-    // Custom Confirmation Dialog
-    if (showConfirmationDialog) {
-        CustomDialog(
-            onDismissRequest = { showConfirmationDialog = false },
-            title = "Confirm Changes",
-            message = "Are you sure you want to save these changes?",
-            confirmButtonText = "Confirm",
-            onConfirm = {
-                showConfirmationDialog = false
-                // Handle save action
-                if (updatedPassword == confirmPassword) {
-                    userViewModel.updateUserProfile(
-                        firstName = firstName,
-                        middleInitial = middleInitial,
-                        lastName = lastName,
-                        birthdate = birthdate,
-                        address = address,
-                        password = if (updatedPassword.isNotEmpty()) updatedPassword else null,
-                        onSuccess = {
-                            showSuccessDialog = true
-                        },
-                        onError = { errorMessage ->
-                            passwordError = errorMessage // Show error in UI
-                            showErrorDialog = true
-                        }
-                    )
+        // Custom Confirmation Dialog
+        if (showConfirmationDialog) {
+            CustomDialog(
+                onDismissRequest = { showConfirmationDialog = false },
+                title = "Confirm Changes",
+                message = "Are you sure you want to save these changes?",
+                confirmButtonText = "Confirm",
+                onConfirm = {
+                    showConfirmationDialog = false
+                    // Handle save action
+                    if (updatedPassword == confirmPassword) {
+                        userViewModel.updateUserProfile(
+                            firstName = firstName,
+                            middleInitial = middleInitial,
+                            lastName = lastName,
+                            email = email, // Pass email here
+                            birthdate = birthdate,
+                            address = address,
+                            password = if (updatedPassword.isNotEmpty()) updatedPassword else null,
+                            onSuccess = {
+                                showSuccessDialog = true
+                            },
+                            onError = { errorMsg ->
+                                errorMessage = errorMsg
+                                showErrorDialog = true
+                            }
+                        )
+                    } else {
+                        passwordError = "Passwords do not match"
+                        showErrorDialog = true
+                    }
+                },
+                dismissButtonText = "Cancel",
+                onDismiss = { showConfirmationDialog = false }
+            )
+        }
 
-                } else {
-                    passwordError = "Passwords do not match"
-                    showErrorDialog = true
+        // Custom Success Dialog
+        if (showSuccessDialog) {
+            CustomDialog(
+                onDismissRequest = { /* Do nothing */ },
+                title = "Success",
+                message = "Your changes have been saved successfully.",
+                confirmButtonText = "OK",
+                onConfirm = {
+                    showSuccessDialog = false
+                    onSave()
                 }
+            )
+        }
 
-            },
-            dismissButtonText = "Cancel",
-            onDismiss = { showConfirmationDialog = false }
-        )
-    }
-
-    // Custom Success Dialog
-    if (showSuccessDialog) {
-        CustomDialog(
-            onDismissRequest = { /* Do nothing */ },
-            title = "Success",
-            message = "Your changes have been saved successfully.",
-            confirmButtonText = "OK",
-            onConfirm = {
-                showSuccessDialog = false
-                onSave()
-            }
-        )
-    }
-
-    // Custom Error Dialog
-    if (showErrorDialog) {
-        CustomDialog(
-            onDismissRequest = { showErrorDialog = false },
-            title = "Error",
-            message = "Passwords do not match.",
-            confirmButtonText = "OK",
-            onConfirm = {
-                showErrorDialog = false
-            }
-        )
+        // Custom Error Dialog
+        if (showErrorDialog) {
+            CustomDialog(
+                onDismissRequest = { showErrorDialog = false },
+                title = "Error",
+                message = errorMessage, // Display the error message
+                confirmButtonText = "OK",
+                onConfirm = {
+                    showErrorDialog = false
+                }
+            )
+        }
     }
 }
+
+// ... [Include CustomDialog and EditableField composables as in your original code]
+
+
 
 @Composable
 fun CustomDialog(
