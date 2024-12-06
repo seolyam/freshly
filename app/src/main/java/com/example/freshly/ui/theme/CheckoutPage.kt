@@ -1,6 +1,6 @@
-// CheckoutPage.kt
 package com.example.freshly.ui.theme
 
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +46,7 @@ fun CheckoutPage(
     userViewModel: UserViewModel,
     onNavigateBack: () -> Unit,
     onPlaceOrder: () -> Unit,
+    onEditInfoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val cartItems by cartViewModel.cartItems.collectAsState()
@@ -53,21 +54,23 @@ fun CheckoutPage(
     val shippingFee = 15.0
     val totalPrice = totalProductPrice + shippingFee
     val userInfo by userViewModel.userInfo.collectAsState()
-    val shippingAddress = "${userInfo.firstName} ${userInfo.middleInitial} ${userInfo.lastName}\n${userInfo.address}"
-    val paymentMethod = "Cash On Delivery"
+
+    val shippingDetails = "${userInfo.firstName} ${userInfo.middleInitial} ${userInfo.lastName}\n" +
+            "${userInfo.contactNumber}\n" +
+            "${userInfo.address}"
 
     Column(
         modifier = modifier.fillMaxSize().background(Color.White)
     ) {
         TopAppBar(
-            title = { Text("CHECKOUT", fontSize = 14.sp, color = Color(0xFF141414)) },
+            title = { Text("CHECKOUT", fontSize = 14.sp, color = Color.Black) },
             navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
                         painter = painterResource(id = R.drawable.eparrowleftnotail),
                         contentDescription = "Back",
                         modifier = Modifier.size(24.dp),
-                        tint = Color.Unspecified
+                        tint = Color.Black
                     )
                 }
             },
@@ -75,16 +78,16 @@ fun CheckoutPage(
         )
 
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Shipping Details:", fontSize = 20.sp, color = Color(0xFF141414))
+            Text("Shipping Details:", fontSize = 20.sp, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(shippingAddress, fontSize = 15.sp, color = Color(0xFF898989))
+            Text(shippingDetails, fontSize = 15.sp, color = Color(0xFF898989))
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "Edit Info",
                 fontSize = 15.sp,
                 color = Color(0xFF4E4E4E),
                 textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable { /* Handle edit action */ }
+                modifier = Modifier.clickable { onEditInfoClick() }
             )
         }
         HorizontalDivider(thickness = 1.dp, color = Color(0xFFC4C4C4))
@@ -107,8 +110,8 @@ fun CheckoutPage(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Payment Method:", fontSize = 15.sp, color = Color(0xFF141414))
-                Text(paymentMethod, fontSize = 15.sp, color = Color(0xFF898989))
+                Text("Payment Method:", fontSize = 15.sp, color = Color.Black)
+                Text("Cash On Delivery", fontSize = 15.sp, color = Color(0xFF898989))
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -126,8 +129,8 @@ fun CheckoutPage(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Total:", fontSize = 20.sp, color = Color(0xFF141414))
-                Text("₱${"%.2f".format(totalPrice)}", fontSize = 20.sp, color = Color(0xFF141414))
+                Text("Total:", fontSize = 20.sp, color = Color.Black)
+                Text("₱${"%.2f".format(totalPrice)}", fontSize = 20.sp, color = Color.Black)
             }
         }
 
@@ -153,11 +156,23 @@ fun CheckoutCartItem(item: CartItem) {
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        PlaceholderImage(
-            modifier = Modifier
-                .size(60.dp)
-                .clip(RoundedCornerShape(8.dp))
-        )
+        if (!item.imageUrl.isNullOrEmpty()) {
+            coil.compose.AsyncImage(
+                model = item.imageUrl,
+                contentDescription = item.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        } else {
+            PlaceholderImage(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        }
+
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(

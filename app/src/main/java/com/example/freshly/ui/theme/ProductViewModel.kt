@@ -1,4 +1,3 @@
-// ProductViewModel.kt
 package com.example.freshly.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -17,15 +16,20 @@ class ProductViewModel : ViewModel() {
     private val _products = MutableStateFlow<List<Product>>(emptyList())
     val products: StateFlow<List<Product>> get() = _products
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> get() = _errorMessage
 
-    init {
-        fetchProducts()
-    }
+    private var dataFetched = false // Track if data has already been fetched
 
     fun fetchProducts() {
+        if (dataFetched) return // Prevent fetching data again
+        dataFetched = true
+
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val response = apiService.getProducts()
                 if (response.isSuccessful) {
@@ -41,6 +45,8 @@ class ProductViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "An error occurred: ${e.message}"
+            } finally {
+                _isLoading.value = false
             }
         }
     }

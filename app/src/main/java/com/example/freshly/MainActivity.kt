@@ -1,4 +1,3 @@
-// MainActivity.kt
 package com.example.freshly
 
 import android.os.Bundle
@@ -24,7 +23,7 @@ import com.example.freshly.ui.theme.CartViewModel
 import com.example.freshly.ui.theme.CheckoutPage
 import com.example.freshly.ui.theme.EditProfileScreen
 import com.example.freshly.ui.theme.FreshlyTheme
-import com.example.freshly.ui.HomePageScreen
+import com.example.freshly.ui.theme.InfoPage
 import com.example.freshly.ui.theme.LoginScreen
 import com.example.freshly.ui.theme.OrderConfirmation
 import com.example.freshly.ui.theme.ProductPageScreen
@@ -32,6 +31,9 @@ import com.example.freshly.ui.theme.SignUpScreen
 import com.example.freshly.ui.theme.TokenManager
 import com.example.freshly.ui.theme.UserProfileScreen
 import com.example.freshly.ui.theme.UserViewModel
+import com.example.freshly.viewmodel.ProductViewModel
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 class MainActivity : ComponentActivity() {
     private val cartViewModel: CartViewModel by viewModels()
@@ -44,6 +46,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    private val productViewModel: ProductViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +65,8 @@ class MainActivity : ComponentActivity() {
                         startDestination = startDestination,
                         modifier = Modifier.padding(innerPadding),
                         cartViewModel = cartViewModel,
-                        userViewModel = userViewModel
+                        userViewModel = userViewModel,
+                        productViewModel = productViewModel
                     )
                 }
             }
@@ -76,7 +80,8 @@ fun NavigationComponent(
     startDestination: String,
     modifier: Modifier = Modifier,
     cartViewModel: CartViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    productViewModel: ProductViewModel
 ) {
     NavHost(
         navController = navController,
@@ -113,11 +118,17 @@ fun NavigationComponent(
             HomePageScreen(
                 onCartClick = { navController.navigate("cart") },
                 onProductClick = { product ->
+                    val encodedName = URLEncoder.encode(product.name, "UTF-8")
+                    val encodedDescription = URLEncoder.encode(product.description, "UTF-8")
+                    val encodedAllergens = URLEncoder.encode(product.allergens, "UTF-8")
+                    val encodedImageUrl = URLEncoder.encode(product.imageUrl, "UTF-8")
+
                     navController.navigate(
-                        "product/${product.name}/${product.price}/${product.description}/${product.allergens}"
+                        "product/$encodedName/${product.price}/$encodedDescription/$encodedAllergens/$encodedImageUrl"
                     )
                 },
-                onProfileClick = { navController.navigate("userProfile") }
+                onProfileClick = { navController.navigate("userProfile") },
+                productViewModel = productViewModel
             )
         }
         composable("cart") {
@@ -126,12 +137,21 @@ fun NavigationComponent(
                 onCheckoutClick = { navController.navigate("checkout") }
             )
         }
-        composable("product/{productName}/{productPrice}/{productDescription}/{productAllergens}") { backStackEntry ->
-            val productName = backStackEntry.arguments?.getString("productName") ?: ""
+        composable("product/{productName}/{productPrice}/{productDescription}/{productAllergens}/{productImageUrl}") { backStackEntry ->
+            val productName = backStackEntry.arguments?.getString("productName")?.let {
+                URLDecoder.decode(it, "UTF-8")
+            } ?: ""
             val productPriceString = backStackEntry.arguments?.getString("productPrice") ?: "0.0"
             val productPrice = productPriceString.toDoubleOrNull() ?: 0.0
-            val productDescription = backStackEntry.arguments?.getString("productDescription") ?: ""
-            val productAllergens = backStackEntry.arguments?.getString("productAllergens") ?: ""
+            val productDescription = backStackEntry.arguments?.getString("productDescription")?.let {
+                URLDecoder.decode(it, "UTF-8")
+            } ?: ""
+            val productAllergens = backStackEntry.arguments?.getString("productAllergens")?.let {
+                URLDecoder.decode(it, "UTF-8")
+            } ?: ""
+            val productImageUrl = backStackEntry.arguments?.getString("productImageUrl")?.let {
+                URLDecoder.decode(it, "UTF-8")
+            } ?: ""
 
             ProductPageScreen(
                 cartViewModel = cartViewModel,
@@ -139,6 +159,7 @@ fun NavigationComponent(
                 productPrice = productPrice,
                 productDescription = productDescription,
                 productAllergens = productAllergens,
+                productImageUrl = productImageUrl,
                 onNavigateBack = { navController.popBackStack() },
                 onCartClick = { navController.navigate("cart") }
             )
@@ -153,6 +174,21 @@ fun NavigationComponent(
                     navController.navigate("orderConfirmation") {
                         popUpTo("home") { inclusive = false }
                     }
+                },
+                onEditInfoClick = {
+                    navController.navigate("info") // Navigate to info page
+                }
+            )
+        }
+
+        composable("info") {
+            // Navigate to InfoPage
+            InfoPage(
+                userViewModel = userViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onSignUpComplete = {
+                    // After updating info, pop back or navigate to checkout
+                    navController.popBackStack()
                 }
             )
         }

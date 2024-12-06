@@ -1,4 +1,3 @@
-// EditProfileScreen.kt
 package com.example.freshly.ui.theme
 
 import androidx.compose.foundation.BorderStroke
@@ -39,23 +38,17 @@ fun EditProfileScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Observe the userInfo from UserViewModel
     val userInfo by userViewModel.userInfo.collectAsState()
 
-    // State variables for user inputs
-    var firstName by remember { mutableStateOf(userInfo.firstName) }
-    var middleInitial by remember { mutableStateOf(userInfo.middleInitial) }
-    var lastName by remember { mutableStateOf(userInfo.lastName) }
-    var email by remember { mutableStateOf(userInfo.email) } // Added email
-    var birthdate by remember { mutableStateOf(userInfo.birthdate) }
+    var contactNumber by remember { mutableStateOf(userInfo.contactNumber) }
     var address by remember { mutableStateOf(userInfo.address) }
+    var birthdate by remember { mutableStateOf(userInfo.birthdate) }
     var updatedPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
 
     val context = LocalContext.current
 
-    // Date Picker Dialog
     val calendar = Calendar.getInstance()
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH)
@@ -73,7 +66,6 @@ fun EditProfileScreen(
         )
     }
 
-    // State for showing custom dialogs
     var showConfirmationDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
@@ -84,227 +76,111 @@ fun EditProfileScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Content with scroll capability
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onNavigateBack) {
+                Icon(
+                    painter = painterResource(id = R.drawable.eparrowleftnotail),
+                    contentDescription = "Back",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Text(
+                text = "Edit Profile",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(24.dp))
+        }
+
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Spacer for top padding
-            Spacer(modifier = Modifier.height(12.dp))
+            EditableField(
+                label = "Contact Number",
+                value = contactNumber,
+                onValueChange = { contactNumber = it }
+            )
 
-            // Top bar with back arrow and "Edit Profile" text centered
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-            ) {
-                // Back arrow aligned to the start
-                IconButton(
-                    onClick = onNavigateBack,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.eparrowleftnotail),
-                        contentDescription = "Back",
-                        modifier = Modifier.size(24.dp),
-                        tint = Color.Unspecified
-                    )
+            EditableField(
+                label = "Address",
+                value = address,
+                onValueChange = { address = it }
+            )
+
+            EditableField(
+                label = "Birthdate",
+                value = birthdate,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { datePickerDialog.show() }) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = "Select Date"
+                        )
+                    }
                 }
+            )
 
-                // "Edit Profile" text centered
+            EditableField(
+                label = "Update Password",
+                value = updatedPassword,
+                onValueChange = { updatedPassword = it },
+                isPassword = true
+            )
+
+            EditableField(
+                label = "Confirm Password",
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                isPassword = true
+            )
+
+            if (passwordError.isNotEmpty()) {
                 Text(
-                    text = "Edit Profile",
-                    color = Color.Black,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(Alignment.Center)
+                    text = passwordError,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.align(Alignment.Start)
                 )
             }
 
-            // Spacer between top bar and content
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Main content
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Profile Icon centered
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .background(Color(0xFF128819), shape = CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Profile Image",
-                        tint = Color.White,
-                        modifier = Modifier.size(128.dp)
-                    )
-                }
-
-                // Spacer between profile icon and content
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Personal Information Section
-                Text(
-                    text = "Personal Information",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF201E1E),
-                    modifier = Modifier
-                        .padding(bottom = 8.dp)
-                        .align(Alignment.Start)
-                )
-
-                // First Name and Middle Initial
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    EditableField(
-                        label = "First Name",
-                        value = firstName,
-                        onValueChange = { firstName = it },
-                        modifier = Modifier.weight(1f)
-                    )
-                    EditableField(
-                        label = "Middle Initial",
-                        value = middleInitial,
-                        onValueChange = { middleInitial = it },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Last Name and Birthdate
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    EditableField(
-                        label = "Last Name",
-                        value = lastName,
-                        onValueChange = { lastName = it },
-                        modifier = Modifier.weight(1f)
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Birthdate",
-                            color = Color.Black,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-                        )
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color(0xFFCBC6C6)),
-                            color = Color(0xFFF8F8F8),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp)
-                                .clickable { datePickerDialog.show() }
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = birthdate,
-                                    color = Color(0xFF141414),
-                                    fontSize = 14.sp,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.CalendarToday,
-                                    contentDescription = "Select Date",
-                                    tint = Color(0xFF141414)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Email Field
-                EditableField(
-                    label = "Email",
-                    value = email,
-                    onValueChange = { email = it },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                // Address
-                EditableField(
-                    label = "Address",
-                    value = address,
-                    onValueChange = { address = it }
-                )
-
-                // Update Password
-                EditableField(
-                    label = "Update Password",
-                    value = updatedPassword,
-                    onValueChange = { updatedPassword = it },
-                    isPassword = true
-                )
-
-                // Confirm Password
-                EditableField(
-                    label = "Confirm Password",
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    isPassword = true
-                )
-
-                // Reserve space for error message
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(20.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    if (passwordError.isNotEmpty()) {
-                        Text(
-                            text = passwordError,
-                            color = Color.Red,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-
-                // Save Changes Button
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    if (updatedPassword == confirmPassword) {
                         showConfirmationDialog = true
-                        passwordError = "" // Clear previous error
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "Save Changes",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                // Spacer at the bottom to prevent content from being cut off
-                Spacer(modifier = Modifier.height(16.dp))
+                    } else {
+                        passwordError = "Passwords do not match"
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "Save Changes",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
-        // Custom Confirmation Dialog
         if (showConfirmationDialog) {
             CustomDialog(
                 onDismissRequest = { showConfirmationDialog = false },
@@ -313,38 +189,27 @@ fun EditProfileScreen(
                 confirmButtonText = "Confirm",
                 onConfirm = {
                     showConfirmationDialog = false
-                    // Handle save action
-                    if (updatedPassword == confirmPassword) {
-                        userViewModel.updateUserProfile(
-                            firstName = firstName,
-                            middleInitial = middleInitial,
-                            lastName = lastName,
-                            email = email, // Pass email here
-                            birthdate = birthdate,
-                            address = address,
-                            password = if (updatedPassword.isNotEmpty()) updatedPassword else null,
-                            onSuccess = {
-                                showSuccessDialog = true
-                            },
-                            onError = { errorMsg ->
-                                errorMessage = errorMsg
-                                showErrorDialog = true
-                            }
-                        )
-                    } else {
-                        passwordError = "Passwords do not match"
-                        showErrorDialog = true
-                    }
+                    userViewModel.updateUserExtras(
+                        contactNumber = contactNumber,
+                        address = address,
+                        birthdate = birthdate,
+                        onSuccess = {
+                            showSuccessDialog = true
+                        },
+                        onError = { error ->
+                            errorMessage = error
+                            showErrorDialog = true
+                        }
+                    )
                 },
                 dismissButtonText = "Cancel",
                 onDismiss = { showConfirmationDialog = false }
             )
         }
 
-        // Custom Success Dialog
         if (showSuccessDialog) {
             CustomDialog(
-                onDismissRequest = { /* Do nothing */ },
+                onDismissRequest = { showSuccessDialog = false },
                 title = "Success",
                 message = "Your changes have been saved successfully.",
                 confirmButtonText = "OK",
@@ -355,12 +220,11 @@ fun EditProfileScreen(
             )
         }
 
-        // Custom Error Dialog
         if (showErrorDialog) {
             CustomDialog(
                 onDismissRequest = { showErrorDialog = false },
                 title = "Error",
-                message = errorMessage, // Display the error message
+                message = errorMessage,
                 confirmButtonText = "OK",
                 onConfirm = {
                     showErrorDialog = false
@@ -370,9 +234,65 @@ fun EditProfileScreen(
     }
 }
 
-// ... [Include CustomDialog and EditableField composables as in your original code]
+@Composable
+fun EditableField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isPassword: Boolean = false,
+    readOnly: Boolean = false,
+    trailingIcon: @Composable (() -> Unit)? = null
+) {
+    var passwordVisible by remember { mutableStateOf(false) }
 
-
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = label,
+            color = Color.Black,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+        )
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, Color(0xFFCBC6C6)),
+            color = Color(0xFFF8F8F8),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    readOnly = readOnly,
+                    textStyle = TextStyle(
+                        fontSize = 14.sp,
+                        color = if (readOnly) Color.Gray else Color.Black
+                    ),
+                    visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+                    modifier = Modifier.weight(1f)
+                )
+                if (isPassword) {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Hide Password" else "Show Password"
+                        )
+                    }
+                }
+                trailingIcon?.invoke()
+            }
+        }
+    }
+}
 
 @Composable
 fun CustomDialog(
@@ -420,14 +340,13 @@ fun CustomDialog(
                     if (dismissButtonText != null && onDismiss != null) {
                         Button(
                             onClick = onDismiss,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFAAAAAA)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
                                 text = dismissButtonText,
                                 color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
+                                fontSize = 14.sp
                             )
                         }
                     }
@@ -439,84 +358,12 @@ fun CustomDialog(
                         Text(
                             text = confirmButtonText,
                             color = Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 14.sp
                         )
                     }
                 }
             }
         }
     }
-}
 
-@Composable
-fun EditableField(
-    modifier: Modifier = Modifier,
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    isPassword: Boolean = false
-
-) {
-    var passwordVisible by remember { mutableStateOf(false) }
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-        Text(
-            text = label,
-            color = Color.Black,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-        )
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, Color(0xFFCBC6C6)),
-            color = Color(0xFFF8F8F8),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-        ) {
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-                textStyle = TextStyle(
-                    color = Color(0xFF141414),
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                decorationBox = { innerTextField ->
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            innerTextField()
-                        }
-                        if (isPassword) {
-                            IconButton(
-                                onClick = { passwordVisible = !passwordVisible },
-                                modifier = Modifier.size(24.dp)
-                            ) {
-                                val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                                val description = if (passwordVisible) "Hide password" else "Show password"
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = description,
-                                    tint = Color(0xFF141414)
-                                )
-                            }
-                        }
-                    }
-                }
-            )
-        }
-    }
 }

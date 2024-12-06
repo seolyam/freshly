@@ -1,4 +1,3 @@
-// HomePageScreen.kt
 package com.example.freshly.ui
 
 import androidx.compose.foundation.Canvas
@@ -13,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -33,7 +34,6 @@ import coil.compose.AsyncImage
 import com.example.freshly.models.Product
 import com.example.freshly.viewmodel.ProductViewModel
 import com.google.accompanist.pager.*
-import kotlinx.coroutines.launch
 
 @Composable
 fun HomePageScreen(
@@ -41,10 +41,23 @@ fun HomePageScreen(
     onCartClick: () -> Unit,
     onProductClick: (Product) -> Unit,
     onProfileClick: () -> Unit,
-    productViewModel: ProductViewModel = remember { ProductViewModel() }
+    productViewModel: ProductViewModel
 ) {
     val products by productViewModel.products.collectAsState()
+    val isLoading by productViewModel.isLoading.collectAsState()
     val errorMessage by productViewModel.errorMessage.collectAsState()
+    var searchQuery by remember { mutableStateOf("") }
+
+    // Fetch products only once
+    LaunchedEffect(Unit) {
+        productViewModel.fetchProducts()
+    }
+
+    val filteredProducts = if (searchQuery.isBlank()) {
+        products
+    } else {
+        products.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    }
 
     Box(
         modifier = modifier
@@ -56,24 +69,23 @@ fun HomePageScreen(
             SearchSection(
                 modifier = Modifier
                     .padding(16.dp)
-                    .background(Color.White)
+                    .background(Color.White),
+                searchQuery = searchQuery,
+                onSearchChange = { query -> searchQuery = query }
             )
 
-            // Ensure the carousel is visible at the top
             ProductCarouselSection()
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Display products in a grid, scrollable
-            if (errorMessage != null) {
-                // Show error message
-                Text(
+            when {
+                isLoading -> SkeletonLoader()
+                errorMessage != null -> Text(
                     text = errorMessage ?: "Unknown error",
                     color = Color.Red,
                     modifier = Modifier.padding(16.dp)
                 )
-            } else {
-                ProductCategoriesSection(products = products, onProductClick = onProductClick)
+                else -> ProductCategoriesSection(products = filteredProducts, onProductClick = onProductClick)
             }
         }
 
@@ -116,7 +128,6 @@ fun ProductImageSection(page: Int, itemWidth: Dp, itemHorizontalMargin: Dp) {
             .background(Color.Gray),
         contentAlignment = Alignment.Center
     ) {
-        // Placeholder for image
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 text = "Page $page",
@@ -177,9 +188,11 @@ fun AnnotatedString.Builder.appendWithStyle(text: String, color: Color, size: an
 }
 
 @Composable
-fun SearchSection(modifier: Modifier = Modifier) {
-    var searchQuery by remember { mutableStateOf("") }
-
+fun SearchSection(
+    modifier: Modifier = Modifier,
+    searchQuery: String,
+    onSearchChange: (String) -> Unit
+) {
     Box(
         modifier = modifier
             .height(48.dp)
@@ -203,7 +216,7 @@ fun SearchSection(modifier: Modifier = Modifier) {
 
             BasicTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
+                onValueChange = { onSearchChange(it) },
                 textStyle = TextStyle(
                     color = Color(0xFF201E1E),
                     fontSize = 14.sp
@@ -231,6 +244,51 @@ fun SearchSection(modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun SkeletonLoader() {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        contentPadding = PaddingValues(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        items(6) {
+            Box(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .size(150.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.LightGray)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .background(Color.Gray)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.6f)
+                            .height(10.dp)
+                            .background(Color.Gray)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.4f)
+                            .height(10.dp)
+                            .background(Color.Gray)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ProductCategoriesSection(
     products: List<Product>,
     onProductClick: (Product) -> Unit
@@ -252,7 +310,6 @@ fun ProductCategoriesSection(
             )
         }
 
-        // Define the height of your bottom navigation bar
         val bottomNavBarHeight = 56.dp
 
         LazyVerticalGrid(
@@ -278,19 +335,21 @@ fun ProductItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .padding(8.dp)
-            .clickable {
-                onProductClick(product)
-            }
+            .clickable { onProductClick(product) }
     ) {
-        // Use Coil to load images
-        AsyncImage(
-            model = product.imageUrl,
-            contentDescription = product.name,
+        Box(
             modifier = Modifier
                 .size(150.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(Color.LightGray)
-        )
+        ) {
+            AsyncImage(
+                model = product.imageUrl,
+                contentDescription = product.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
         Text(
             text = product.name,
             color = Color(0xFF201E1E),
@@ -298,7 +357,7 @@ fun ProductItem(
             modifier = Modifier.padding(top = 8.dp)
         )
         Text(
-            text = "$${product.price}",
+            text = "₱${product.price}",
             color = Color(0xFF201E1E),
             fontSize = 14.sp
         )

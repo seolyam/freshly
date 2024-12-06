@@ -28,6 +28,14 @@ interface ApiService {
     @GET("/profile")
     suspend fun getProfile(@Header("Authorization") token: String): Response<UserProfileResponse>
 
+    @POST("/update-user-info")
+    suspend fun updateUserExtras(
+        @Header("Authorization") token: String,
+        @Body request: UserExtraInfoRequest
+    ): Response<GenericResponse>
+
+
+
     @POST("/profile")
     suspend fun updateProfile(
         @Header("Authorization") token: String,
