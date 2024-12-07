@@ -32,11 +32,24 @@ import com.example.freshly.ui.theme.TokenManager
 import com.example.freshly.ui.theme.UserProfileScreen
 import com.example.freshly.ui.theme.UserViewModel
 import com.example.freshly.viewmodel.ProductViewModel
+import com.example.freshly.ui.theme.ApiClient
+import com.example.freshly.ui.theme.ApiService
 import java.net.URLDecoder
 import java.net.URLEncoder
 
 class MainActivity : ComponentActivity() {
-    private val cartViewModel: CartViewModel by viewModels()
+    // Create a custom factory for CartViewModel
+    private val cartViewModel: CartViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val apiService = ApiClient.retrofit.create(ApiService::class.java)
+                val tokenManager = TokenManager(applicationContext)
+                @Suppress("UNCHECKED_CAST")
+                return CartViewModel(apiService, tokenManager) as T
+            }
+        }
+    }
+
     private val userViewModel: UserViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -46,6 +59,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
     private val productViewModel: ProductViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -124,7 +138,7 @@ fun NavigationComponent(
                     val encodedImageUrl = URLEncoder.encode(product.imageUrl, "UTF-8")
 
                     navController.navigate(
-                        "product/$encodedName/${product.price}/$encodedDescription/$encodedAllergens/$encodedImageUrl"
+                        "product/${product.id}/$encodedName/${product.price}/$encodedDescription/$encodedAllergens/$encodedImageUrl"
                     )
                 },
                 onProfileClick = { navController.navigate("userProfile") },
@@ -137,7 +151,9 @@ fun NavigationComponent(
                 onCheckoutClick = { navController.navigate("checkout") }
             )
         }
-        composable("product/{productName}/{productPrice}/{productDescription}/{productAllergens}/{productImageUrl}") { backStackEntry ->
+        composable("product/{productId}/{productName}/{productPrice}/{productDescription}/{productAllergens}/{productImageUrl}") { backStackEntry ->
+            val productIdString = backStackEntry.arguments?.getString("productId") ?: "0"
+            val productId = productIdString.toIntOrNull() ?: 0
             val productName = backStackEntry.arguments?.getString("productName")?.let {
                 URLDecoder.decode(it, "UTF-8")
             } ?: ""
@@ -154,14 +170,15 @@ fun NavigationComponent(
             } ?: ""
 
             ProductPageScreen(
-                cartViewModel = cartViewModel,
+                productId = productId,
                 productName = productName,
                 productPrice = productPrice,
                 productDescription = productDescription,
                 productAllergens = productAllergens,
                 productImageUrl = productImageUrl,
                 onNavigateBack = { navController.popBackStack() },
-                onCartClick = { navController.navigate("cart") }
+                onCartClick = { navController.navigate("cart") },
+                cartViewModel = cartViewModel
             )
         }
         composable("checkout") {
@@ -182,12 +199,10 @@ fun NavigationComponent(
         }
 
         composable("info") {
-            // Navigate to InfoPage
             InfoPage(
                 userViewModel = userViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onSignUpComplete = {
-                    // After updating info, pop back or navigate to checkout
                     navController.popBackStack()
                 }
             )

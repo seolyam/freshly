@@ -1,17 +1,7 @@
 package com.example.freshly.ui.theme
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +12,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -42,6 +33,11 @@ fun CartScreen(
     onCheckoutClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Fetch the latest cart items from the backend whenever this screen is shown
+    LaunchedEffect(Unit) {
+        cartViewModel.fetchCartItemsFromBackend()
+    }
+
     val cartItems by cartViewModel.cartItems.collectAsState()
 
     Column(
@@ -57,7 +53,8 @@ fun CartScreen(
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             ),
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier
+                .padding(bottom = 16.dp)
                 .align(Alignment.CenterHorizontally)
                 .padding(bottom = 16.dp)
         )
@@ -133,7 +130,7 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
         ) {
             Text(
                 text = item.name,
-                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black) // Black font color
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             )
             Text(
                 text = "₱${"%.2f".format(item.price * item.quantity)}",
@@ -156,7 +153,7 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
                         cartViewModel.removeItem(item)
                     }
                 },
-                modifier = Modifier.size(30.dp),  // Adjusted size
+                modifier = Modifier.size(30.dp),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray),
                 contentPadding = PaddingValues(0.dp)
@@ -169,14 +166,14 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))  // Adjust spacing
+            Spacer(modifier = Modifier.width(8.dp))
 
             // Display quantity
             Text(
                 text = "${item.quantity}",
                 color = Color.Black,
                 fontSize = 18.sp,
-                modifier = Modifier.padding(horizontal = 8.dp) // Adjust spacing
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -184,7 +181,7 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
             // Plus Button
             Button(
                 onClick = { cartViewModel.incrementItemQuantity(item) },
-                modifier = Modifier.size(30.dp),  // Adjusted size
+                modifier = Modifier.size(30.dp),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),
                 contentPadding = PaddingValues(0.dp)
@@ -197,6 +194,5 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
                 )
             }
         }
-
     }
 }
