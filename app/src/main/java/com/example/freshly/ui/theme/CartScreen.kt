@@ -1,12 +1,14 @@
 package com.example.freshly.ui.theme
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -46,18 +48,37 @@ fun CartScreen(
             .background(Color.White)
             .padding(16.dp)
     ) {
-        Text(
-            text = "Your Cart",
-            style = TextStyle(
-                color = Color.Black,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            ),
+        Row(
             modifier = Modifier
-                .padding(bottom = 16.dp)
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 16.dp)
-        )
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Your Cart",
+                style = TextStyle(
+                    color = Color.Black,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Icon(
+                imageVector = Icons.Filled.Delete,
+                contentDescription = "Clear Cart",
+                tint = Color.Red,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable {
+                        // Clear the cart when the icon is clicked
+                        cartViewModel.clearCartRemote(onSuccess = {
+                            cartViewModel.clearCart() // Clear local cart after backend is cleared
+                        }, onError = { error ->
+                            // Handle error (optional, e.g., show a toast or snackbar)
+                        })
+                    }
+            )
+        }
 
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -113,7 +134,6 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
                     .clip(RoundedCornerShape(8.dp))
             )
         } else {
-            // Fallback if no image URL is available
             PlaceholderImage(
                 modifier = Modifier
                     .size(80.dp)
@@ -123,7 +143,6 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Product name and price
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.weight(1f)
@@ -140,15 +159,11 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Quantity controls: Minus, Quantity, Plus
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Minus Button
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
                     if (item.quantity > 1) {
-                        cartViewModel.decrementItemQuantity(item)
+                        cartViewModel.updateCartItemQuantityRemote(item.productId, item.quantity - 1)
                     } else {
                         cartViewModel.removeItem(item)
                     }
@@ -168,7 +183,6 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Display quantity
             Text(
                 text = "${item.quantity}",
                 color = Color.Black,
@@ -178,9 +192,10 @@ fun CartItemRow(item: CartItem, cartViewModel: CartViewModel) {
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Plus Button
             Button(
-                onClick = { cartViewModel.incrementItemQuantity(item) },
+                onClick = {
+                    cartViewModel.updateCartItemQuantityRemote(item.productId, item.quantity + 1)
+                },
                 modifier = Modifier.size(30.dp),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128819)),

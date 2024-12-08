@@ -41,6 +41,24 @@ class CartViewModel(private val apiService: ApiService, private val tokenManager
         }
     }
 
+    fun clearCartRemote(onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
+        val token = tokenManager.getToken() ?: return
+        val authHeader = "Bearer $token"
+        viewModelScope.launch {
+            try {
+                val response = apiService.clearCart(authHeader)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    onSuccess()
+                } else {
+                    onError("Failed to clear cart: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                onError("An error occurred: ${e.message}")
+            }
+        }
+    }
+
+
     fun addItemToRemoteCart(productId: Int, quantity: Int, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         val token = tokenManager.getToken() ?: return
         val authHeader = "Bearer $token"
@@ -94,7 +112,7 @@ class CartViewModel(private val apiService: ApiService, private val tokenManager
         updateCartItemQuantityRemote(item.productId, 0)
     }
 
-    private fun updateCartItemQuantityRemote(productId: Int, newQuantity: Int) {
+    fun updateCartItemQuantityRemote(productId: Int, newQuantity: Int) {
         val token = tokenManager.getToken() ?: return
         val authHeader = "Bearer $token"
 

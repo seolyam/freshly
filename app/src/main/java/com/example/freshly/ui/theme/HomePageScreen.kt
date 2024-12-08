@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -41,6 +40,7 @@ fun HomePageScreen(
     onCartClick: () -> Unit,
     onProductClick: (Product) -> Unit,
     onProfileClick: () -> Unit,
+    onMyPurchasesClick: () -> Unit, // Added parameter for "My Purchases"
     productViewModel: ProductViewModel
 ) {
     val products by productViewModel.products.collectAsState()
@@ -91,7 +91,8 @@ fun HomePageScreen(
 
         BottomNavigationBar(
             modifier = Modifier.align(Alignment.BottomCenter),
-            onProfileClick = onProfileClick
+            onProfileClick = onProfileClick,
+            onMyPurchasesClick = onMyPurchasesClick // Pass the click event handler
         )
     }
 }
@@ -105,15 +106,42 @@ fun ProductCarouselSection() {
     val itemHorizontalMargin = 8.dp
     val itemWidth = screenWidth - itemHorizontalMargin * 2
 
+    // Banner image URLs
+    val banners = listOf(
+        "https://img.freepik.com/free-psd/tropical-fruit-banner-template_23-2148892583.jpg?semt=ais_hybrid",
+        "https://img.freepik.com/free-vector/hand-drawn-supermarket-sale-background_23-2149406388.jpg?semt=ais_hybrid",
+        "https://img.freepik.com/premium-psd/healthy-food-vegetable-grocery-social-media-facebook-cover-design-web-banner-template_456977-205.jpg?semt=ais_hybrid"
+    )
+
     HorizontalPager(
         state = pagerState,
-        count = 3,
+        count = banners.size,
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp),
         verticalAlignment = Alignment.CenterVertically
     ) { page ->
-        ProductImageSection(page, itemWidth, itemHorizontalMargin)
+        BannerImage(banners[page], itemWidth, itemHorizontalMargin)
+    }
+}
+
+@Composable
+fun BannerImage(imageUrl: String, itemWidth: Dp, itemHorizontalMargin: Dp) {
+    Box(
+        modifier = Modifier
+            .width(itemWidth)
+            .padding(horizontal = itemHorizontalMargin)
+            .height(220.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.Gray),
+        contentAlignment = Alignment.Center
+    ) {
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = "Banner Image",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 
@@ -367,7 +395,8 @@ fun ProductItem(
 @Composable
 fun BottomNavigationBar(
     modifier: Modifier = Modifier,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    onMyPurchasesClick: () -> Unit
 ) {
     Box(
         modifier = modifier
@@ -385,9 +414,11 @@ fun BottomNavigationBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Filled.Home,
-                contentDescription = "Home Icon",
-                modifier = Modifier.size(24.dp),
+                imageVector = Icons.Filled.Receipt, // Updated to AutoMirrored
+                contentDescription = "My Purchases Icon",
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { onMyPurchasesClick() },
                 tint = Color.White
             )
             Icon(

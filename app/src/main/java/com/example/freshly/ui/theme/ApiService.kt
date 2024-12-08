@@ -1,9 +1,9 @@
 package com.example.freshly.ui.theme
 
 import com.example.freshly.models.ProductResponse
-import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -21,11 +21,17 @@ interface ApiService {
     @GET("/user/profile")
     suspend fun getProfile(@Header("Authorization") token: String): Response<UserProfileResponse>
 
+    @POST("/auth/refresh")
+    suspend fun refreshToken(@Body request: RefreshTokenRequest): Response<TokenResponse>
+
     @POST("/update-user-info")
     suspend fun updateUserExtras(
         @Header("Authorization") token: String,
         @Body request: UserExtraInfoRequest
     ): Response<GenericResponse>
+
+    @GET("/orders")
+    suspend fun getOrders(@Header("Authorization") token: String): Response<OrdersResponse>
 
     @POST("/user/profile")
     suspend fun updateProfile(
@@ -38,6 +44,10 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: UpdateCartQuantityRequest
     ): Response<GenericResponse>
+
+    @DELETE("/cart/clear")
+    suspend fun clearCart(@Header("Authorization") token: String): Response<GenericResponse>
+
 
     @POST("/checkout")
     suspend fun checkout(

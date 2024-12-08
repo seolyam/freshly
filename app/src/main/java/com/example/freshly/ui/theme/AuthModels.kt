@@ -23,8 +23,9 @@ data class RegisterResponse(
 
 data class LoginResponse(
     val success: Boolean,
-    val message: String,
-    val token: String?
+    val token: String?, // JWT Token
+    val refreshToken: String?, // Refresh Token
+    val message: String? = null
 )
 
 

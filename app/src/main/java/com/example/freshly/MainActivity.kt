@@ -25,6 +25,7 @@ import com.example.freshly.ui.theme.EditProfileScreen
 import com.example.freshly.ui.theme.FreshlyTheme
 import com.example.freshly.ui.theme.InfoPage
 import com.example.freshly.ui.theme.LoginScreen
+import com.example.freshly.ui.theme.OrderHistoryScreen
 import com.example.freshly.ui.theme.OrderConfirmation
 import com.example.freshly.ui.theme.ProductPageScreen
 import com.example.freshly.ui.theme.SignUpScreen
@@ -34,16 +35,18 @@ import com.example.freshly.ui.theme.UserViewModel
 import com.example.freshly.viewmodel.ProductViewModel
 import com.example.freshly.ui.theme.ApiClient
 import com.example.freshly.ui.theme.ApiService
+import com.example.freshly.ui.theme.OrdersViewModel
 import java.net.URLDecoder
 import java.net.URLEncoder
 
 class MainActivity : ComponentActivity() {
-    // Create a custom factory for CartViewModel
+    // Shared ApiService instance
+    private val apiService: ApiService = ApiClient.retrofit.create(ApiService::class.java)
+
     private val cartViewModel: CartViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val apiService = ApiClient.retrofit.create(ApiService::class.java)
-                val tokenManager = TokenManager(applicationContext)
+                val tokenManager = TokenManager(applicationContext, apiService)
                 @Suppress("UNCHECKED_CAST")
                 return CartViewModel(apiService, tokenManager) as T
             }
@@ -53,7 +56,7 @@ class MainActivity : ComponentActivity() {
     private val userViewModel: UserViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val tokenManager = TokenManager(applicationContext)
+                val tokenManager = TokenManager(applicationContext, apiService)
                 @Suppress("UNCHECKED_CAST")
                 return UserViewModel(tokenManager) as T
             }
@@ -62,13 +65,22 @@ class MainActivity : ComponentActivity() {
 
     private val productViewModel: ProductViewModel by viewModels()
 
+    private val ordersViewModel: OrdersViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val tokenManager = TokenManager(applicationContext, apiService)
+                @Suppress("UNCHECKED_CAST")
+                return OrdersViewModel(apiService, tokenManager) as T
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             FreshlyTheme {
                 val navController = rememberNavController()
 
-                // Observe userInfo token using collectAsState()
                 val userInfo = userViewModel.userInfo.collectAsState().value
                 val isLoggedIn = userInfo.token.isNotEmpty()
                 val startDestination = if (isLoggedIn) "home" else "phone"
@@ -80,7 +92,8 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding),
                         cartViewModel = cartViewModel,
                         userViewModel = userViewModel,
-                        productViewModel = productViewModel
+                        productViewModel = productViewModel,
+                        ordersViewModel = ordersViewModel
                     )
                 }
             }
@@ -95,7 +108,8 @@ fun NavigationComponent(
     modifier: Modifier = Modifier,
     cartViewModel: CartViewModel,
     userViewModel: UserViewModel,
-    productViewModel: ProductViewModel
+    productViewModel: ProductViewModel,
+    ordersViewModel: OrdersViewModel
 ) {
     NavHost(
         navController = navController,
@@ -142,6 +156,7 @@ fun NavigationComponent(
                     )
                 },
                 onProfileClick = { navController.navigate("userProfile") },
+                onMyPurchasesClick = { navController.navigate("myPurchases") },
                 productViewModel = productViewModel
             )
         }
@@ -193,11 +208,10 @@ fun NavigationComponent(
                     }
                 },
                 onEditInfoClick = {
-                    navController.navigate("info") // Navigate to info page
+                    navController.navigate("info")
                 }
             )
         }
-
         composable("info") {
             InfoPage(
                 userViewModel = userViewModel,
@@ -215,9 +229,7 @@ fun NavigationComponent(
                     }
                 },
                 onTrackOrder = {
-                    navController.navigate("home") {
-                        popUpTo("home") { inclusive = true }
-                    }
+                    navController.navigate("myPurchases")
                 }
             )
         }
@@ -239,6 +251,9 @@ fun NavigationComponent(
                 onSave = { navController.popBackStack() },
                 onNavigateBack = { navController.popBackStack() }
             )
+        }
+        composable("myPurchases") {
+            OrderHistoryScreen(ordersViewModel = ordersViewModel) // Updated to OrderHistoryScreen
         }
     }
 }

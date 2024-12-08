@@ -22,6 +22,42 @@ data class CheckoutResponse(
     val orderId: Int?
 )
 
+data class UpdateCartItemQuantityRequest(
+    val productId: Int,
+    val quantity: Int
+)
+
+data class OrdersResponse(
+    val success: Boolean,
+    val orders: List<OrderDto>
+)
+data class OrderDto(
+    val orderId: Int,
+    val createdAt: String,
+    val contactNumber: String?,
+    val address: String?,
+    val status: String,
+    val items: List<OrderItemDto>
+)
+
+data class RefreshTokenRequest(
+    val refreshToken: String
+)
+
+data class TokenResponse(
+    val jwtToken: String?,
+    val refreshToken: String?
+)
+
+
+data class OrderItemDto(
+    val productId: Int,
+    val productName: String,
+    val quantity: Int,
+    val price: Double,
+    val imageUrl: String = ""
+)
+
 
 data class CartItemDto(
     @SerializedName("productId") val productId: Int, // Backend uses "productId" (camelCase)

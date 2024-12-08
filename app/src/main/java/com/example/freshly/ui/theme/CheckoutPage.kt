@@ -39,8 +39,7 @@ fun CheckoutPage(
     userViewModel: UserViewModel,
     onNavigateBack: () -> Unit,
     onPlaceOrder: () -> Unit = {},
-    onEditInfoClick: () -> Unit
-
+    onEditInfoClick: () -> Unit,
 ) {
     val cartItems by cartViewModel.cartItems.collectAsState()
     val totalProductPrice = cartViewModel.getTotalPrice()
@@ -49,8 +48,7 @@ fun CheckoutPage(
     val userInfo by userViewModel.userInfo.collectAsState()
 
     val shippingDetails = "${userInfo.firstName} ${userInfo.middleInitial} ${userInfo.lastName}\n" +
-            "${userInfo.contactNumber}\n" +
-            "${userInfo.address}"
+            "${userInfo.contactNumber}\n" + userInfo.address
 
     Column(
         modifier = modifier.fillMaxSize().background(Color.White)

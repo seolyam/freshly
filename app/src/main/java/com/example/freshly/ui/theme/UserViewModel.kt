@@ -77,7 +77,7 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
                     val responseBody = response.body()
                     if (responseBody?.success == true) {
                         responseBody.token?.let { token ->
-                            tokenManager.saveToken(token)
+                            tokenManager.saveTokens(token, responseBody.refreshToken ?: "")
                             _userInfo.value = _userInfo.value.copy(email = email, token = token)
                             fetchUserProfile(onSuccess)
                         }
@@ -171,7 +171,7 @@ class UserViewModel(private val tokenManager: TokenManager) : ViewModel() {
     }
 
     fun logout() {
-        tokenManager.clearToken()
+        tokenManager.clearTokens()
         _userInfo.value = UserInfo()
     }
 }
